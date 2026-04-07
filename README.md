@@ -5,4 +5,4 @@
 <br>
 
 
-#### 👉 **[DopamineCut 상세 기획 문서(DRD) 열람하기](./DRD Documents)**
+#### 👉 **[DopamineCut 상세 기획 문서(DRD) 열람하기](./DRD_Documents)**
