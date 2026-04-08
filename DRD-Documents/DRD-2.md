@@ -5,7 +5,7 @@
 # (2/2)프로그램 수행계획
 ## Work Breakdown 차트
 <p align="center">
-  <img src="./images/DRD-2_WBS.png" width="85%">
+  <img src="./images/DRD-2_WBS.png" width="100%">
 </p>
 
 도파민 컷은 크게 기획 및 설게, 앱 서비스, 서버, 문서작업으로 구분된다.
