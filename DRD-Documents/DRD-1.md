@@ -114,6 +114,6 @@
 본 시스템은 사용자의 시청 기록, 앱 사용 기록을 다루기 때문에 정보보안과 사용자 안전을 최우선으로 고려해야 한다. 특히 로그인 및 사용자 데이터 저장 기능이 포함되므로 Firebase Security Rules의 최소 권한 원칙, 암호화 전송, 계쩡 보호 기능을 등을 적용하여 데이터 유출과 오남용 위험을 줄여야 한다.
 
 ### 5) 정책 준수 제한사항
-본 시스템이 실제 배포를 위해서는 안드로이드 및 Google Play 생태계의 표준과 정책을 충족해야만 한다. 사용자의 활동을 추적하는 Accessibility API 사용 앱은 Play Console의 권한 선언과 검토 절차를 거쳐야 하고, 데이터 수집 여부와 보안 처리 방식은 Data safety 양식에 정확히 기재되어야 한다. 또한 UI는 Android Core App Quality와 Material Design 기준을 딸느느 것이 바람직하며, 보안 측면에서는 OWASP MASVS 같은 모바일 보안 표준을 준수하는 것이 요구된다. 즉 도파민 컷은 정책 적합성, 품질 및 보안 기준을 동시에 충족하느 시스템이여야 한다.
+본 시스템이 실제 배포를 위해서는 안드로이드 및 Google Play 생태계의 표준과 정책을 충족해야만 한다. 사용자의 활동을 추적하는 Accessibility API 사용 앱은 Play Console의 권한 선언과 검토 절차를 거쳐야 하고, 데이터 수집 여부와 보안 처리 방식은 Data safety 양식에 정확히 기재되어야 한다. 또한 UI는 Android Core App Quality와 Material Design 기준을 따르는 것이 바람직하며, 보안 측면에서는 OWASP MASVS 같은 모바일 보안 표준을 준수하는 것이 요구된다. 즉 도파민 컷은 정책 적합성, 품질 및 보안 기준을 동시에 충족하느 시스템이여야 한다.
 
 ## 1.5 Specification
