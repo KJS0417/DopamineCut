@@ -10,7 +10,7 @@
 
 <br>
 <p align="center">
-  <img src="./images/DRD-3_넌얼마나쓰니.png" width="60%">
+  <img src="./images/DRD-3_넌얼마나쓰니.png" width="50%">
   <br>
   [그림 1] 넌얼마나쓰니: 시간 설정 및 잠금 해제
 </p>
@@ -22,7 +22,7 @@
 
 <br>
 <p align="center">
-  <img src="./images/DRD-3_열정품은타이머.png" width="60%">
+  <img src="./images/DRD-3_열정품은타이머.png" width="50%">
   <br>
   [그림 2] 열정 품은 타이머: 실시간 접속 여부 및 허용 앱 설정
 </p>
@@ -34,7 +34,7 @@
 
 <br>
 <p align="center">
-  <img src="./images/DRD-3_unShort.png" width="60%">
+  <img src="./images/DRD-3_unShort.png" width="50%">
   <br>
   [그림 3] un:short: 실제 패널티 요소 및 이중 제어
 </p>
@@ -49,7 +49,7 @@
 
 <br>
 <p align="center">
-  <img src="./images/DRD-3_Forest.png" width="60%">
+  <img src="./images/DRD-3_Forest.png" width="50%">
   <br>
   [그림 4] Forest: 실사용 화면 및 실제 나무 심기 캠페인 기부 화면
 </p>
@@ -62,7 +62,7 @@
 
 <br>
 <p align="center">
-  <img src="./images/DRD-3_onesec.png" width="60%">
+  <img src="./images/DRD-3_onesec.png" width="50%">
   <br>
   [그림 5] one sec: 실제 패널티 요소 및 쇼츠 감지
 </p>
@@ -74,7 +74,7 @@
 
 <br>
 <p align="center">
-  <img src="./images/DRD-3_Stayfree.png" width="60%">
+  <img src="./images/DRD-3_Stayfree.png" width="50%">
   <br>
   [그림 6] StayFree: 앱 사용 통계 및 일일 사용량 설정
 </p>
@@ -101,8 +101,11 @@
 또한 커뮤니티가 정보 공유 및 응원 등의 긍정적인 분위기로 운영되도록 하여 사용자 간의 유대감을 형성하고, 이를 바탕으로 장기적인 습관 형성을 유도한다.
 
 ## **3.4. 경쟁 제품 기능 분석 및 비교표**
+<br>
 <p align="center">
   [표 1] 디지털 디톡스 제품 비교
   <br>
   <img src="./images/DRD-3_비교표.png" width="100%">
 </p>
+
+종합하자면, **'도파민 컷'**은 타 제품들이 가지는 일차원적인 앱 차단 방식의 기술적 한계를 극복한 앱이다. 숏폼 콘텐츠에 대한 정밀한 제어와 소셜 커뮤니티 및 챌린지를 통한 보상 시스템을 결합함으로써, 사용자에게 지속 가능하고 자발적인 디지털 디톡스 환경을 제공한다.
