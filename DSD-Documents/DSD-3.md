@@ -114,6 +114,7 @@
 
 | 속성명 (Attribute) | 자료형 (Data Type) | 제약조건 (Constraint) | 설명 (Description) |
 | :--- | :--- | :--- | :--- |
+| `platform` | VARCHAR(20) | NOT NULL | 영상을 시청한 플랫폼명 (YouTube = Y, Instagram = I, Tiktok = T, KakaoTalk = K 와 같이 축약적으로 표현)
 | `log_id` | VARCHAR(50) | PRIMARY KEY | 로그 행 식별 고유 ID |
 | `user_id` | VARCHAR(50) | FOREIGN KEY (USER) | 시청 행위를 한 유저 ID |
 | `category` | VARCHAR(20) | NOT NULL | OCR 매칭 카테고리 9종 중 하나 명시 |
@@ -155,3 +156,50 @@
 | `user_id` | VARCHAR(50) | FOREIGN KEY (USER) | 아이템을 소유한 유저 고유 ID |
 | `item_type` | VARCHAR(30) | NOT NULL | 아이템 대분류 (POKE: 찌르기 권한 / MEGAPHONE: 광고 확성기) |
 | `quantity` | INT | DEFAULT 0 | 유저가 보유 중인 해당 아이템 잔여 수량 |
+
+#### 8) 앱 사용 시간 로그 (APP_USAGE)
+* **설명:** 당일 통계를 위해 수집하는 데이터
+
+| 속성명 | 자료형 | 제약조건 | 설명 |
+| :--- | :--- | :--- | :--- |
+| `usage_id` | VARCHAR(50) | PRIMARY KEY | 사용 시간 로그 고유 ID |
+| `user_id` | VARCHAR(50) | FOREIGN KEY (USER) | 유저 ID |
+| `app_package` | VARCHAR(50) | NOT NULL | 사용한 앱 패키지명 (예: com.google.android.youtube) |
+| `duration_sec` | INT | NOT NULL | 1회 실행 시 유지된 시간(초) |
+| `created_at` | TIMESTAMP | DEFAULT NOW() | 기록 시간 |
+
+#### 9) 일일 통계 집계 테이블 (DAILY_STATISTICS)
+* **설명:** 사용자의 하루 앱 사용 및 시청 데이터를 통계로 활용하기 위해 집계합니다.
+
+| 속성명 | 자료형 | 제약조건 | 설명 |
+| :--- | :--- | :--- | :--- |
+| `stat_id` | VARCHAR(50) | PRIMARY KEY | 통계 고유 ID (userId_YYYYMMDD 형태로 일관되게 지정) |
+| `user_id` | VARCHAR(50) | FOREIGN KEY (USER) | 유저 ID |
+| `target_date` | DATE | NOT NULL | 집계 기준 날짜 (예: 2024-05-20) |
+| `final_score` | INT | NOT NULL | 해당 날짜 자정 기준 최종 도파민 점수 |
+| `total_app_time` | INT | DEFAULT 0 | 하루 동안 4개 타겟 앱을 사용한 총합 시간(초) |
+| `total_shorts_count` | INT | DEFAULT 0 | 하루 동안 시청한 총 숏폼 영상 개수 |
+| `app_usage_json` | JSON | NULL | 앱별 사용 시간 데이터 (예: {"Y": 3600, "I": 1200}) |
+| `category_count_json` | JSON | NULL | 카테고리별 시청 횟수 데이터 (예: {"게임": 15, "유머": 5}) |
+
+## 3.3 사용자 통계 제공
+  도파민 컷은 사용자의 시청한 숏폼의 카테고리별 수, 총 숏폼 시청 수, 앱별 시청 수, 앱별 사용 시간 등의 정보를 수집하여 여러 통계를 제공한다.
+  제공할 통계 및 시각화 지표는 다음과 같다.
+  
+  ### 3.3.1 기본 제공 통계
+  로그인 후의 메인 화면에서 확인할 수 있는 통계이다.
+  | 통계명 | 활용 테이블 | 시각화 방식 | 설명 |
+  | :--- | :--- | :---: | :---: |
+  | 오늘의 숏폼 카테고리 비율 | DAILY_STATISTICS<br>(category_count_json) | 파이 차트 | 오늘 시청한 숏폼 영상들이 카테고리 중 어디에 집중되어  있는지 비율(%)로 제공한다. |
+  | 주간 숏폼 시청 추이 | DAILY_STATISTICS<br>(total_shorts_count) | 막대 그래프 | 최근 7일간의 총 숏폼 시청 개수 변화를 막대 그래프로 보여주어 점진적 감소 여부를 파악하게 한다. |
+  | 오늘의 앱 사용 시간 랭킹 | DAILY_STATISTICS<br>(app_usage_json) | 수평 막대 그래프 | 등록한 앱 중 오늘 가장 많은 시간을 소비한 앱의 순위와 시간을 표기한다. |
+
+  ### 3.3.2 추가 제공 통계
+  앱 하단 탭 중 통계를 선택하면 기본 제공 통계와 함께 추가적으로 확인할 수 있는 통계이다.
+  | 통계명 | 활용 테이블 | 시각화 방식 | 설명 |
+  | :--- | :--- | :---: | :---: |
+  | 취약 시간대 분석 | DOPAMINE_LOG<br>(created_at) | 꺾은선 그래프 | 하루 24시간 중 어느 시간대에 도파민 점수 차감이 가장 많이 발생하는지 분석하여 사용자의 취약 시간을 시각적으로 경고한다. |
+  | 앱 사용 목적 분석 | DAILY_STATISTICS &<br>DOPAMINE_LOG | 도넛 차트 | 숏폼 플랫폼 앱(예: 유튜브)의 "총 실행 시간" 대비 "숏폼 재생 시간"의 비율을 계산한다. (예: "유튜브 사용 시간의 85%를 쇼츠 시청에 사용했습니다.") |
+  | 연속 목표 달성일 | DAILY_STATISTICS<br>(final_score) | 캘린더 & 불꽃 아이콘<br>(Streak UI) | 사용자 지정 목표를 달성한 연속 일수를 표기한다. 연속 기록이 끊기지 않게 하려는 게이미피케이션(Gamification) 효과를 유발한다. <br> 목표를 지정하지 않은 경우에는 목표 달성으로 포함하지 않는다. |
+  
+  
