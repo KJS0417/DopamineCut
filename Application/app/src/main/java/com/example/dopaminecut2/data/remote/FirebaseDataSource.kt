@@ -1,0 +1,75 @@
+package com.example.dopaminecut2.data.remote
+
+import com.example.dopaminecut2.data.model.DopamineLog
+import com.example.dopaminecut2.data.model.User
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
+
+class FirebaseDataSource(
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+) {
+    // 유저 정보 조회
+    suspend fun fetchUser(userId: String): User {
+        val snapshot = firestore.collection("users").document(userId).get().await()
+        return snapshot.toObject(User::class.java)
+            ?: throw Exception("유저 정보를 찾을 수 없습니다.")
+    }
+
+    // 유저 정보 실시간 스트림 (아이템 개수, 점수 변동 등을 화면에 즉각 반영하기 위함)
+    fun getUserStream(userId: String): Flow<User> = callbackFlow {
+        val listener = firestore.collection("users").document(userId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val user = snapshot?.toObject(User::class.java)
+                if (user != null) {
+                    trySend(user).isSuccess
+                }
+            }
+        // 코루틴이 취소되거나 화면이 꺼지면 리스너를 안전하게 해제함
+        awaitClose { listener.remove() }
+    }
+
+    // 차단 카테고리/목표 설정 업데이트
+    suspend fun updateUserRestrictions(userId: String, restrictions: List<String>) {
+        firestore.collection("users").document(userId)
+            .update("restrictions", restrictions)
+            .await() // 코루틴을 통해 서버 응답이 올 때까지 대기
+    }
+
+    // 숏폼 시청 로그 저장 (문서 ID는 자동 생성)
+    suspend fun insertDopamineLog(log: DopamineLog) {
+        firestore.collection("dopamine_logs").add(log).await()
+    }
+
+    // 앱 사용량 실시간 누적 (FieldValue.increment 활용)
+    suspend fun incrementAppUsageData(
+        userId: String,
+        date: String,         // 예: "20260523"
+        platform: String,     // 예: "youtube"
+        runTimeSec: Long,
+        shortformCount: Long
+    ) {
+        val documentId = "${userId}_${date}"
+
+        // 업데이트할 데이터를 Map 형태로 구성 (app_usage.youtube.run_time_sec 형식)
+        val updates = hashMapOf<String, Any>(
+            "user_id" to userId,
+            "date" to date,
+            "app_usage.$platform.run_time_sec" to FieldValue.increment(runTimeSec),
+            "app_usage.$platform.shortform_count" to FieldValue.increment(shortformCount)
+        )
+
+        // SetOptions.merge()를 쓰면 해당 날짜의 문서가 없으면 새로 만들고, 있으면 숫자만 더해줍니다.
+        firestore.collection("daily_statistics").document(documentId)
+            .set(updates, SetOptions.merge())
+            .await()
+    }
+}
