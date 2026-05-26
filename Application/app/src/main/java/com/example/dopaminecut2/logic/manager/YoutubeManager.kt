@@ -17,8 +17,7 @@ class YoutubeManager :  AppManagerInterface {
 //        (숏폼에서만 확인할 수 있는 UI 로그에서의 특징 파악)
 //
 //        이 세 가지 중 두 가지가 포함되면 숏폼으로 간주함
-        val shortsCoreIds = null
-
+        val shortsCoreIds: List<String> = listOf()
 
         return shortsCoreIds.any { rootNode.findAccessibilityNodeInfosByViewId(it).isNotEmpty() }
     }

@@ -24,56 +24,18 @@ class ViewTracker(
      */
     fun onScreenChanged(isShortform: Boolean, videoId: String?, isDuplicate: Boolean) {
         // 1. 숏폼 화면을 벗어났거나 식별자가 없는 경우(광고 등) -> 즉시 타이머 중지
-        if (!isShortform || videoId == null) {
-            stopTracking()
-            return
-        }
+
 
         // 2. 현재 이미 타이머가 돌고 있는 '같은 영상'이라면 무시 -> 타이머 계속 유지
-        if (videoId == currentVideoId) {
-            return
-        }
+
 
         // 3. 화면이 바뀌어서 '다른 영상'이 들어왔으므로 기존 타이머 강제 종료 및 초기화
-        stopTracking()
+
 
         // 4. 이미 카운트가 올라갔던 '중복 시청 영상'이라면 새 타이머가 시작하지 않음
-        if (isDuplicate) {
-            Log.d("DopamineCut", "[ViewTracker] 중복 영상 패스: $videoId")
-            return
-        }
+
 
         // 5. 모든 관문을 통과한 '완전 새로운 영상' ->  새 타이머 시작함
-        startTracking(videoId)
     }
 
-    /** * 백그라운드 코루틴을 생성하여 지정된 시간(viewThresholdMs) 동안 대기하는 타이머를 작동시킴
-     */
-    private fun startTracking(videoId: String) {
-        currentVideoId = videoId
-        Log.d("DopamineCut", "[ViewTracker] 새 숏폼 인식됨: $videoId")
-
-        // 백그라운드에서 시간을 카운트 함
-        trackingJob = CoroutineScope(Dispatchers.Default).launch {
-            delay(viewThresholdMs) // 설정된 시간(예: 5초) 동안 대기
-
-            // 5초 동안 취소되지 않았다면 유효 시청으로 인정함
-            withContext(Dispatchers.Main) {
-                Log.d("DopamineCut", "[ViewTracker] 5초 달성, 카운트 증가 요청: $videoId")
-                onValidViewCounted(videoId) // 카운트 증가 콜백 실행
-            }
-
-            trackingJob = null
-        }
-    }
-
-    /** 3초가 되기 전에 스크롤을 넘기거나 앱을 껐을 때 호출되어 스톱워치를 멈춤 */
-    fun stopTracking() {
-        if (trackingJob?.isActive == true) {
-            Log.d("DopamineCut", "[ViewTracker] 3초 미만 시청으로 카운트 취소됨")
-            trackingJob?.cancel() // 진행 중인 타이머를 즉시 취소
-        }
-        trackingJob = null
-        currentVideoId = null
-    }
 }

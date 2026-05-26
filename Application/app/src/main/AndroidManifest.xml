@@ -27,22 +27,16 @@
         </service>
 
         <activity
-            android:name=".logic.ShortformSettingActivity"
-            android:exported="false" />
+        android:name=".auth.LoginActivity"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity>
+
         <activity
-            android:name=".auth.LoginActivity"
-            android:exported="false" />
-        <activity
-            android:name=".auth.SignUpActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
+            android:name=".auth.SignupActivity"
+            android:exported="false" />    </application>
 
 </manifest>
