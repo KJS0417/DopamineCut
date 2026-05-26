@@ -42,15 +42,22 @@ com.example.dopaminecut
  ┣ 📂 service              // [6] 안드로이드 백그라운드 서비스
  ┃ ┗ 📜 AppBlockService    // AccessibilityService 상속 클래스로 목표 초과된 앱 실행 및 숏폼 감지시 차단 역할 수행
  ┃
- ┗ 📂 data                 // [7] 데이터 계층 (서버 통신 및 로컬 DB)
-   ┣ 📂 model              // 데이터 클래스
-   ┃ ┣ 📜 User.kt
-   ┃ ┣ 📜 DopamineLog.kt
-   ┃ ┗ 📜 Room.kt
-   ┣ 📂 repository         // 데이터 저장/불러오기 전담
-   ┃ ┗ 📜 UserRepository 
-   ┣ 📂 remote             // Firebase 관련 코드 (Firestore, Functions)
-   ┗ 📂 local              // 기기 내부 저장소 (Room DB, DataStore)
+📂 data                      // [7] 데이터 통신 계층 패키지 (로컬/리모트)
+ ┣ 📂 model                  // 데이터 클래스 모음 (Firestore 문서와 1:1 매칭)
+ ┃ ┣ 📜 User                 // 유저 정보(ID, 이메일, 닉네임, 차단 카테고리, 아이템) 객체
+ ┃ ┣ 📜 Room                 // 모임방 정보(초대 코드, 방장, 실시간 멤버 점수) 객체
+ ┃ ┣ 📜 DopamineLog          // 숏폼 시청 기록(플랫폼, AI 카테고리, 지속 시간, 감점) 객체
+ ┃ ┗ 📜 DailyStatistics      // 당일 누적 점수 및 앱별(유튜브 등) 사용량 통계 객체
+ ┃
+ ┣ 📂 repository             // 단일 데이터 진입점 (ViewModel/Service 요청 처리)
+ ┃ ┗ 📜 UserRepository       // 유저 정보 조회, 목표 저장, 통계 동기화 등 총괄 저장소
+ ┃
+ ┣ 📂 remote                 // 외부 서버(Firebase) 통신 실무 로직
+ ┃ ┗ 📜 FirebaseDataSource   // Firestore 읽기/쓰기 및 실시간 랭킹(SnapshotListener) 세팅
+ ┃
+ ┗ 📂 local                  // 기기 내부 저장소 실무 로직
+   ┣ 📜 DataStoreManager     // 자동 로그인 세션 및 앱별 목표 설정값 로컬 저장
+   ┗ 📜 AppDatabase          // 오프라인(인터넷 끊김) 대비 기록 임시 저장용 Room DB
 ```
 
 ---
@@ -310,3 +317,20 @@ com.example.dopaminecut
 | **local** | `AppDatabase` | 오프라인 상태(인터넷 끊김)일 때 측정된 체류 시간이나 로그를 임시 저장했다가 통신이 회복되면 서버로 밀어넣기 위한 객체 |
 
 ---
+
+📂 data                      // [7] 데이터 통신 계층 패키지 (로컬/리모트)
+ ┣ 📂 model                  // 데이터 클래스 모음 (Firestore 문서와 1:1 매칭)
+ ┃ ┣ 📜 User                 // 유저 정보(ID, 이메일, 닉네임, 차단 카테고리, 아이템) 객체
+ ┃ ┣ 📜 Room                 // 모임방 정보(초대 코드, 방장, 실시간 멤버 점수) 객체
+ ┃ ┣ 📜 DopamineLog          // 숏폼 시청 기록(플랫폼, AI 카테고리, 지속 시간, 감점) 객체
+ ┃ ┗ 📜 DailyStatistics      // 당일 누적 점수 및 앱별(유튜브 등) 사용량 통계 객체
+ ┃
+ ┣ 📂 repository             // 단일 데이터 진입점 (ViewModel/Service 요청 처리)
+ ┃ ┗ 📜 UserRepository       // 유저 정보 조회, 목표 저장, 통계 동기화 등 총괄 저장소
+ ┃
+ ┣ 📂 remote                 // 외부 서버(Firebase) 통신 실무 로직
+ ┃ ┗ 📜 FirebaseDataSource   // Firestore 읽기/쓰기 및 실시간 랭킹(SnapshotListener) 세팅
+ ┃
+ ┗ 📂 local                  // 기기 내부 저장소 실무 로직
+   ┣ 📜 DataStoreManager     // 자동 로그인 세션 및 앱별 목표 설정값 로컬 저장
+   ┗ 📜 AppDatabase          // 오프라인(인터넷 끊김) 대비 기록 임시 저장용 Room DB
