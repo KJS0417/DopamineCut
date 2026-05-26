@@ -52,10 +52,10 @@ com.example.dopaminecut
  ┣ 📂 repository             // 단일 데이터 진입점 (ViewModel/Service 요청 처리)
  ┃ ┗ 📜 UserRepository       // 유저 정보 조회, 목표 저장, 통계 동기화 등 총괄 저장소
  ┃
- ┣ 📂 remote                 // 외부 서버(Firebase) 통신 실무 로직
+ ┣ 📂 remote                 // 외부 서버(Firebase) 통신 로직
  ┃ ┗ 📜 FirebaseDataSource   // Firestore 읽기/쓰기 및 실시간 랭킹(SnapshotListener) 세팅
  ┃
- ┗ 📂 local                  // 기기 내부 저장소 실무 로직
+ ┗ 📂 local                  // 기기 내부 저장소 로직
    ┣ 📜 DataStoreManager     // 자동 로그인 세션 및 앱별 목표 설정값 로컬 저장
    ┗ 📜 AppDatabase          // 오프라인(인터넷 끊김) 대비 기록 임시 저장용 Room DB
 ```
