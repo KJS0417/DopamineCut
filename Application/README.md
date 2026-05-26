@@ -17,9 +17,9 @@ com.example.dopaminecut
  ┃ ┣ 📜 TargetSettingDialog // 앱별 목표(시간/횟수) 수정 팝업 UI
  ┃ ┗ 📜 MainViewModel     // 대시보드/통계 데이터 제공 및 목표 설정 저장 로직
  ┃
- ┣ 📂 settings             // [3] 앱 설정 화면
- ┃ ┣ 📜 AppBlockSettingActivity // 사용자 목표 숏폼 수, 앱 사용시간 설정 UI
- ┃ ┗ 📜 SettingsViewModel // 사용자 설정 반영 로직
+┣ 📂 settings               // [3] 앱 설정 패키지
+ ┃ ┣ 📜 SettingsFragment     // 계정 관리(로그아웃/탈퇴), 필수 권한 상태 확인, 앱 정보 UI
+ ┃ ┗ 📜 SettingsViewModel    // 설정 관련 서버 통신 및 로컬 세션 초기화 로직
  ┃
  ┣ 📂 community            // [4] 인앱 소그룹 모임방 및 커뮤니티 내용
  ┃ ┣ 📜 RoomListActivity  // 참여 가능한 그룹 목록 표시
