@@ -137,6 +137,8 @@
 - XML / Jetpack 기반 UI 구성 요소 : 화면 레이아웃 설계
 - Accessibility Service API : 앱 실행 및 숏폼 진입 감지
 - Kotlin Coroutines / Flow : 비동기 데이터 처리 및 상태 관리
+- Gemini API : 정제된 텍스트와 프롬프트를 결합하여 숏폼 영상 카테고리를 추론하는 LLM 연동
+- Google ML Kit (Text Recognition v2) : 온디바이스(On-Device) 기반 고속 화면 텍스트 추출 (OCR)
 
 ② 백엔드 및 데이터 관리 도구
 - Firebase Firestore : 사용자 기록 및 커뮤니티 데이터 저장

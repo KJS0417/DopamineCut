@@ -75,83 +75,137 @@
 
 ---
 
-### 3.2.2 각 테이블의 구조
+### 3.2.2 각 컬렉션의 구조
 
-#### 1) 유저 테이블 (USER)
-* **설명:** 회원가입 시 생성되는 유저의 기본 정보 및 앱 내 도파민 통제 점수를 관리하는 테이블입니다.
+#### 1) 유저 정보 컬렉션 (users)
+* **설명:** 회원가입 시 생성되는 유저의 계정 정보 및 인벤토리 아이템, 카테고리 우선순위를 통합 관리하는 컬렉션입니다.
+* **문서 ID:** Firebase Auth에서 발급된 유저 고유 ID (`user_id`)
 
-| 속성명 (Attribute) | 자료형 (Data Type) | 제약조건 (Constraint) | 설명 (Description) |
+| 필드명 (Field) | 유형 (Type) | 제약조건 (Constraint) | 설명 (Description) |
 | :--- | :--- | :--- | :--- |
-| `user_id` | VARCHAR(50) | PRIMARY KEY | Firebase Auth 연동 유저 고유 UID |
-| `email` | VARCHAR(100) | NOT NULL, UNIQUE | 유저 이메일 계정 |
-| `nickname` | VARCHAR(30) | NOT NULL | 서비스 내 노출될 유저 식별 닉네임 |
-| `daily_score` | INT | DEFAULT 100 | 금일 잔여 도파민 점수 (매일 자정 100 초기화) |
-| `restriction_weights` | JSON | NOT NULL | 1~5위 위험 카테고리 가중치 및 선호 카테고리 설정 데이터 |
+| `user_id` | `string` | **REQUIRED**, 문서 ID와 일치 필수 | 유저 고유 UID (조회 및 객체 매핑용) |
+| `email` | `string` | **REQUIRED**, 이메일 형식 | 유저 이메일 계정 |
+| `nickname` | `string` | **REQUIRED**, 글자 수 제한 (예: 2~30자) | 서비스 내 노출될 유저 식별 닉네임 |
+| `created_at` | `timestamp` | **REQUIRED** | 계정 가입/생성 시간 |
+| `restrictions` | `array<string>` | **REQUIRED**  | 유저가 설정한 1~N순위 절제 카테고리 명칭 배열 (예: `["연예", "게임"]`) |
+| `inventory` | `map` | **REQUIRED**, 기본값 `0`, -1 이하 값 처리 로직 요구 | 아이템 잔여 수량 표시 |
 
-#### 2) 모임 테이블 (ROOM)
-* **설명:** 앱 내에서 ()"열품타 앱"을 벤치마킹하여 생성한) 유저간 소그룹 모임방 메타데이터 테이블입니다.
+### `inventory` map 구조
+* `poke` (`int64`): 모임 내 찌르기 잔여 횟수 (제약: $\ge 0$)
+* `megaphone` (`int64`): 커뮤니티 광고 확성기 잔여 수량 (제약: $\ge 0$)
 
-| 속성명 (Attribute) | 자료형 (Data Type) | 제약조건 (Constraint) | 설명 (Description) |
+---
+
+#### 2) 모임방 컬렉션 (rooms)
+
+* **설명:** 유저 간 소그룹 모임방 메타데이터를 관리하며, 멤버 맵 형식을 통해 방 문서 1개 조회만으로 실시간 랭킹 연출을 지원합니다 (`image_cdbb3e.png` 반영).
+* **문서 ID:** 모임방 고유 식별 ID (`room_id`)
+
+| 필드명 (Field) | 유형 (Type) | 제약조건 (Constraint) | 설명 (Description) |
 | :--- | :--- | :--- | :--- |
-| `room_id` | VARCHAR(50) | PRIMARY KEY | 모임방 고유 식별 ID |
-| `room_name` | VARCHAR(50) | NOT NULL | 생성된 모임방 이름 |
-| `master_id` | VARCHAR(50) | FOREIGN KEY (USER) | 방장 권한을 가진 유저의 ID |
-| `invite_code` | VARCHAR(12) | NOT NULL, UNIQUE | 방 입장을 위한 난수 고유 코드 |
+| `room_id` | `string` | **REQUIRED**, 문서 ID와 일치 필수 | 모임방 고유 식별 ID (조회 및 객체 매핑용) |
+| `room_name` | `string` | **REQUIRED**, 글자 수 제한 (예: 최대 50자) | 생성된 모임방 이름 |
+| `master_id` | `string` | **REQUIRED**, `users` 컬렉션에 존재 확인 필수 | 방장 권한을 가진 유저의 ID |
+| `invite_code` | `string` | **REQUIRED** | 방 입장을 위한 코드, 방장이 직접 정하거나 난수 사용 |
+| `members` | `map` | **REQUIRED**, 최대 멤버 수 제한 (예: 20명) | 소속된 멤버들의 실시간 상태 및 점수 내역 |
 
-#### 3) 모임 멤버 상세 테이블 (ROOM_MEMBER)
-* **설명:** 모임방 내 소속된 멤버(유저들) 정보, 실시간 랭킹 순위 및 자정 정산 결과인 칭호(대장/꼴찌 등) 권한을 매핑합니다.
+### `members` 내부 중첩 구조 (Map)
+* **설명:** 모임방 내 소속된 멤버(유저들) 정보 및 칭호(대장/꼴찌 등)를 매핑합니다.
 
-| 속성명 (Attribute) | 자료형 (Data Type) | 제약조건 (Constraint) | 설명 (Description) |
+  **`{user_uid}` (Key):** 각 참여 유저의 실제 고유 UID 문자열 (`users` 컬렉션의 유효한 ID여야 함)
+  * `nickname` (`string`): **REQUIRED** / 해당 유저의 닉네임 (역정규화)
+  * `daily_score` (`int64`): **REQUIRED** / 범위 제약: $0 \le \text{score} \le 100$ (매일 자정 100점 초기화)
+  * `user_title` (`string`): **REQUIRED** / 기본값 `'일반'`
+  * `user_status` (`string`): **REQUIRED** / 유저의 활동 정보
+
+* **변경사항:** 기존 ROOM_MEMBER 테이블에 포함되어 있던 current_rank는 앱 내에서 계산함.
+
+---
+
+#### 3) 도파민 점수 변동 로그 (DOPAMINE_LOG)
+* **설명:** 방 내 유저의 기록을 확인하는 '도파민 로그'의 데이터를 저장하는 컬렉션입니다.
+
+| 필드명 (Field) | 유형 (Type) | 제약조건 (Constraint) | 설명 (Description) |
 | :--- | :--- | :--- | :--- |
-| `member_id` | VARCHAR(50) | PRIMARY KEY | 매핑 고유 ID |
-| `room_id` | VARCHAR(50) | FOREIGN KEY (ROOM) | 소속된 모임방 ID |
-| `user_id` | VARCHAR(50) | FOREIGN KEY (USER) | 방에 참여한 유저 ID |
-| `user_title` | VARCHAR(20) | DEFAULT '일반' | 자정 정산 칭호 (대장: 하위 유저 알림 권한 획득) |
-| `current_rank` | INT | NULL | 방 내 금일 잔여 점수 기준 실시간 순위 |
+| `user_id` | `string` | **REQUIRED**, `users` 컬렉션에 존재 필수 | 시청 행위를 한 유저의 고유 UID |
+| `platform` | `string` | **REQUIRED** | 영상을 시청한 플랫폼명 |
+| `created_at` | `timestamp` | **REQUIRED**, 서버 시간 기준 생성 (`request.time`) | 숏폼 시청 로그 발생 시간 |
+| `category` | `string` | **REQUIRED**, OCR 매칭 카테고리 9종 내 명시 | OCR 분류 카테고리 명칭 |
+| `duration_sec` | `int64` | **REQUIRED** | 해당 숏폼 영상 누적 체류 지속 시간(초) |
 
-#### 4) 도파민 시청 로그 테이블 (DOPAMINE_LOG)
-* **설명:** OCR로 분류된 숏폼 기록이 적재되며, 방 내 유저 이모티콘 클릭 시 노출되는 '금일 도파민 컷 내용(유저별 숏폼 제한 내용)' 팝업의 통계 원천 데이터가 됩니다.
+---
 
-| 속성명 (Attribute) | 자료형 (Data Type) | 제약조건 (Constraint) | 설명 (Description) |
-| :--- | :--- | :--- | :--- |
-| `log_id` | VARCHAR(50) | PRIMARY KEY | 로그 행 식별 고유 ID |
-| `user_id` | VARCHAR(50) | FOREIGN KEY (USER) | 시청 행위를 한 유저 ID |
-| `category` | VARCHAR(20) | NOT NULL | OCR 매칭 카테고리 9종 중 하나 명시 |
-| `duration_sec` | INT | NOT NULL | 해당 숏폼 영상 누적 체류 지속 시간(초) |
-| `deducted_score` | INT | NOT NULL | 가중치가 반영되어 최종 차감 처리된 벌점액 |
-| `created_at` | TIMESTAMP | DEFAULT NOW() | 숏폼 시청 로그 발생 시간 |
+#### 4) 커뮤니티 게시글&댓글 테이블 (COMMUNITY_POST)
 
-#### 5) 웹 커뮤니티 게시글 테이블 (COMMUNITY_POST)
-* **설명:** 독립 웹 커뮤니티의 피드 데이터베이스입니다. 스토어(상점) 아이템(확성기)을 통한 개인 광고 글 여부 및 노출 만료 시간을 제어합니다.
+* **설명:** 커뮤니티의 데이터베이스입니다. 댓글 작성자의 글자 크기를 점수에 따라 실시간 동기화하여 렌더링합니다.
+* **문서 ID:** Firestore 자동 생성 ID (`post_id`)
 
-| 속성명 (Attribute) | 자료형 (Data Type) | 제약조건 (Constraint) | 설명 (Description) |
+### 필드 구성 및 제약조건
+| 필드명 (Field) | 유형 (Type) | 제약조건 (Constraint) | 설명 (Description) |
 | :--- | :--- | :--- | :--- |
 | `post_id` | VARCHAR(50) | PRIMARY KEY | 게시글 고유 ID |
-| `user_id` | VARCHAR(50) | FOREIGN KEY (USER) | 웹 커뮤니티에 글을 쓴 유저 ID |
-| `title` | VARCHAR(150) | NOT NULL | 게시글 제목 |
-| `content` | TEXT | NOT NULL | 게시글 본문 텍스트 내용 |
-| `image_url` | VARCHAR(255) | NULL | 첨부 사진 스토리지 주소 (텍스트 전용일 시 NULL) |
-| `is_ad` | BOOLEAN | DEFAULT FALSE | 확성기 아이템을 적용한 유저 광고 글 여부 (당근마켓 모델) |
-| `expired_at` | TIMESTAMP | NULL | 광고 아이템 적용 시 상단 고정이 만료되는 시점 |
-| `created_at` | TIMESTAMP | DEFAULT NOW() | 최초 작성 일시 |
+| `user_id` | `string` | **REQUIRED**, `users` 컬렉션에 존재 필수 | 웹 커뮤니티에 글을 쓴 유저 ID |
+| `nickname` | `string` | **REQUIRED** | 게시글 상단에 바로 노출할 작성자 닉네임 |
+| `title` | `string` | **REQUIRED**, 최대 글자 수 제한 (예: 150자) | 게시글 제목 |
+| `content` | `string` | **REQUIRED**, 본문 최소/최대 제한 없음 | 게시글 본문 텍스트 내용 |
+| `image_url` | `string` | **OPTIONAL**, URL 형식 준수 (없을 시 빈 문자열) | 첨부 사진 스토리지 주소 |
+| `is_ad` | `boolean` | **REQUIRED**, 기본값 `false` | MEGAPHONE 아이템을 적용한 유저 광고 글 여부 |
+| `expired_at` | `timestamp` | **OPTIONAL**, `is_ad`가 `true`일 때 필수 지정 | 광고 아이템 적용 시 상단 고정이 만료되는 시점 |
+| `created_at` | `timestamp` | **REQUIRED**, 서버 시간 기준 생성 | 최초 작성 일시 |
+| `comments` | `map` | **REQUIRED**, 기본값 빈 맵 `{}` 생성 | 게시글 하단에 달리는 댓글 데이터 |
 
-#### 6) 웹 커뮤니티 댓글 테이블 (COMMUNITY_COMMENT)
-* **설명:** 웹 커뮤니티 게시글 하단에 달리는 댓글 데이터를 관리하며, 작성 유저의 스코어(금일 도파민 점수)에 맞춰 글자 크기가 동적으로 적용됩니다.
+### `comments` 내부 구조 (Map)
+* **`{comment_number}` : **REQUIRED** / 댓글 순서 표시 및 고유 MAP ID
+  * `user_id` (`string`): **REQUIRED** / 댓글 작성자의 user_id
+  * `nickname` (`string`): **REQUIRED** / 댓글 작성자의 닉네임
+  * `content` (`string`): **REQUIRED** / 댓글 텍스트 본문
+  * `created_at` (`timestamp`): **REQUIRED** / 댓글 작성 시간
+  * *(※ 해당 댓글 렌더링 시, 글자 크기는 `users` 컬렉션 내 동일 유저 UID의 `daily_score` 값을 실시간 대조하여 동적으로 스케일링합니다.)*
 
-| 속성명 (Attribute) | 자료형 (Data Type) | 제약조건 (Constraint) | 설명 (Description) |
-| :--- | :--- | :--- | :--- |
-| `comment_id` | VARCHAR(50) | PRIMARY KEY | 댓글 고유 식별 ID |
-| `post_id` | VARCHAR(50) | FOREIGN KEY (POST) | 대댓글 및 원본 게시글 연동 식별 ID |
-| `user_id` | VARCHAR(50) | FOREIGN KEY (USER) | 댓글 작성자 유저 ID |
-| `content` | TEXT | NOT NULL | 댓글 텍스트 내용 |
-| `created_at` | TIMESTAMP | DEFAULT NOW() | 댓글 작성 시간 |
+* **변경사항:** 댓글 테이블과 게시글 테이블을 별도의 테이블로 관리하지않고 함께 관리함.
 
-#### 7) 유저 인벤토리 아이템 테이블 (USER_INVENTORY)
-* **설명:** 인앱 결제 혹은 우수 보상으로 획득한 '찌르기(알림)', '확성기(개인 광고)' 아이템 소유 현황을 저장하여 앱의 비즈니스 모델(수익 창출)을 실현합니다.
+---
 
-| 속성명 (Attribute) | 자료형 (Data Type) | 제약조건 (Constraint) | 설명 (Description) |
-| :--- | :--- | :--- | :--- |
-| `item_id` | VARCHAR(50) | PRIMARY KEY | 인벤토리 내 아이템 식별 키 |
-| `user_id` | VARCHAR(50) | FOREIGN KEY (USER) | 아이템을 소유한 유저 고유 ID |
-| `item_type` | VARCHAR(30) | NOT NULL | 아이템 대분류 (POKE: 찌르기 권한 / MEGAPHONE: 광고 확성기) |
-| `quantity` | INT | DEFAULT 0 | 유저가 보유 중인 해당 아이템 잔여 수량 |
+### 5) 일일 누적 통계 컬렉션
+* **설명:** 사용자의 하루 전체 앱 사용 동향 및 타겟 플랫폼별 숏폼 시청 통계를 보관합니다.
+* **문서 ID:** 고유 ID $\rightarrow$ **`{user_id}_{YYYYMMDD}`** 로 지정할 것.
+  
+### 필드 구성
+| 필드명 (Field) | 유형 (Type) | 설명 (Description) |
+| :--- | :--- | :--- |
+| `user_id` | `string` | 통계의 유저 고유 UID |
+| `date` | `string` | 집계 기준 날짜 문자열 (예: `"20260523"`) |
+| `daily_score` | `int64` | 오늘 하루 동안 누적되어 차감된 총 벌점액 |
+| `shortform_time` | `int64` | 하루 동안 시청한 총 숏폼 누적 합산 시간(초) |
+| `is_settled` | `boolean` | 자정에 당일 정산이 처리되었는지 여부 |
+| `app_usage` | `map` | 제안된 구조를 기반으로 확장된 앱별 상세 사용 통계 map |
+
+### `app_usage` 내부 중첩 구조 (Map)
+유저가 타겟 앱을 종료하거나 백그라운드로 전환 시, 안드로이드 클라이언트단에서 `FieldValue.increment()` 원자적 연산을 활용해 실시간으로 필드 숫자를 누적 업데이트합니다.
+  * `instagram` / `kakaotalk` / `tiktok` / `youtube` (동일 내부 명세)
+  * `run_time_sec` (`int64`): 당일 해당 앱 총 실행 시간(초)
+  * `shortform_time_sec` (`int64`): 해당 앱 내에서 '숏폼 영상'만 소비한 누적 시간(초)
+  * `shortform_count` (`int64`): 당일 시청 완료 혹은 누적 집계된 숏폼 영상 개수
+
+---
+
+## 3.3 사용자 통계 제공
+  도파민 컷은 사용자의 시청한 숏폼의 카테고리별 수, 총 숏폼 시청 수, 앱별 시청 수, 앱별 사용 시간 등의 정보를 수집하여 여러 통계를 제공한다. 제공할 통계 및 시각화 지표는 다음과 같다.
+  
+  ### 3.3.1 기본 제공 통계
+  로그인 후의 메인 화면에서 확인할 수 있는 통계이다.
+  | 통계명 | 활용 테이블 | 시각화 방식 | 설명 |
+  | :--- | :--- | :---: | :---: |
+  | **오늘의 숏폼 카테고리 비율** | `dopamine_logs`<br>(`category` | 파이 차트 | 오늘 시청한 숏폼 영상들이 카테고리 중 어디에 집중되어  있는지 비율(%)로 제공한다. |
+  | **오늘의 앱 사용 시간 랭킹** | `daily_statistics`<br>(`app_usage.{platform}.run_time_sec` | 수평 막대 그래프 | 등록한 앱 중 오늘 가장 많은 시간을 소비한 앱의 순위와 시간을 표기한다. |
+
+  ### 3.3.2 추가 제공 통계
+  앱 하단 탭 중 통계를 선택하면 기본 제공 통계와 함께 추가적으로 확인할 수 있는 통계이다.
+  | 통계명 | 활용 테이블 | 시각화 방식 | 설명 |
+  | :--- | :--- | :---: | :---: |
+| **주간 숏폼 시청 추이** | `daily_statistics`<br>(`app_usage.{platform}.shortform_count`) | 막대 그래프 | 최근 7일간의 통계 문서를 조회하여 모든 타겟 앱의 '숏폼 시청 개수' 총합 변화를 막대 그래프로 보여주어 점진적 감소 여부를 파악하게 한다. |
+| **취약 시간대 분석** | `dopamine_logs`<br>(`created_at`, `deducted_score`) | 꺾은선 그래프 | 하루 24시간 중 어느 시간대에 도파민 점수 차감이 가장 빈번하고 크게 발생하는지 시계열 로그를 분석하여, 사용자의 취약 시간을 시각적으로 경고한다. |
+| **앱 사용 목적 분석** | `daily_statistics`<br>(`app_usage` 하위 시간 필드 2종) | 도넛 차트 | 특정 앱(예: 유튜브)의 "총 실행 시간(`run_time_sec`)" 대비 "숏폼 재생 시간(`shortform_time_sec`)"의 비율을 단일 문서 내에서 즉시 계산하여 표기한다. (예: "유튜브 사용 시간의 85%를 쇼츠 시청에 사용했습니다.") |
+| **목표 달성일 표시** | `daily_statistics`<br>(`daily_score`) | 캘린더 & 불꽃 아이콘 | 사용자 지정 목표 점수를 방어(달성)한 날짜를 표기한다. 캘린더 UI를 통해 달성 기록을 사용자가 한눈에 파악하게 하여 지속적인 참여를 유도한다. (목표를 지정하지 않은 경우에는 달성으로 포함하지 않는다.) |
+  
+  
