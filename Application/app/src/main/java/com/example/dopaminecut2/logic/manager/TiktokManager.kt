@@ -5,18 +5,25 @@ import android.view.accessibility.AccessibilityNodeInfo
 class TiktokManager : BaseAppManager() {
 
     override val packageName = "com.zhiliaoapp.musically"
-    override val platformName = "Tiktok"
+    override val platformName = "TikTok"
 
-    override fun isShortformSection(root: AccessibilityNodeInfo?): Boolean {
-        return root != null // 틱톡은 거의 항상 숏폼
+    override fun isShortformSection(rootNode: AccessibilityNodeInfo?): Boolean {
+        if (rootNode == null) return false
+
+        return findNodeByAnyText(
+            rootNode,
+            listOf("팔로잉", "추천", "Following", "For You")
+        ) || findLongestText(rootNode) != null
     }
 
-    override fun getVideoIdentifier(root: AccessibilityNodeInfo?): String? {
-        return findLongestText(root)
+    override fun getVideoIdentifier(rootNode: AccessibilityNodeInfo?): String? {
+        return findLongestText(rootNode)
     }
 
-    override fun isAdContent(root: AccessibilityNodeInfo?): Boolean {
-        return findNodeByText(root, "Sponsored") ||
-                findNodeByText(root, "광고")
+    override fun isAdContent(rootNode: AccessibilityNodeInfo?): Boolean {
+        return findNodeByAnyText(
+            rootNode,
+            listOf("Sponsored", "광고", "Ad", "스폰서")
+        )
     }
 }
