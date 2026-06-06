@@ -7,17 +7,21 @@ class InstagramManager : BaseAppManager() {
     override val packageName = "com.instagram.android"
     override val platformName = "Instagram"
 
-    override fun isShortformSection(root: AccessibilityNodeInfo?): Boolean {
-        return findNodeByText(root, "Reels") ||
-                findNodeByText(root, "릴스")
+    override fun isShortformSection(rootNode: AccessibilityNodeInfo?): Boolean {
+        return findNodeByAnyText(
+            rootNode,
+            listOf("Reels", "릴스")
+        )
     }
 
-    override fun getVideoIdentifier(root: AccessibilityNodeInfo?): String? {
-        return findLongestText(root)
+    override fun getVideoIdentifier(rootNode: AccessibilityNodeInfo?): String? {
+        return findLongestText(rootNode)
     }
 
-    override fun isAdContent(root: AccessibilityNodeInfo?): Boolean {
-        return findNodeByText(root, "Sponsored") ||
-                findNodeByText(root, "광고")
+    override fun isAdContent(rootNode: AccessibilityNodeInfo?): Boolean {
+        return findNodeByAnyText(
+            rootNode,
+            listOf("Sponsored", "광고", "협찬")
+        )
     }
 }

@@ -5,18 +5,23 @@ import android.view.accessibility.AccessibilityNodeInfo
 class KakaotalkManager : BaseAppManager() {
 
     override val packageName = "com.kakao.talk"
-    override val platformName = "Kakaotalk"
+    override val platformName = "KakaoTalk"
 
-    override fun isShortformSection(root: AccessibilityNodeInfo?): Boolean {
-        return findNodeByText(root, "재생") ||
-                findNodeByText(root, "동영상")
+    override fun isShortformSection(rootNode: AccessibilityNodeInfo?): Boolean {
+        return findNodeByAnyText(
+            rootNode,
+            listOf("재생", "동영상", "쇼츠", "shorts")
+        )
     }
 
-    override fun getVideoIdentifier(root: AccessibilityNodeInfo?): String? {
-        return findLongestText(root)
+    override fun getVideoIdentifier(rootNode: AccessibilityNodeInfo?): String? {
+        return findLongestText(rootNode)
     }
 
-    override fun isAdContent(root: AccessibilityNodeInfo?): Boolean {
-        return findNodeByText(root, "광고")
+    override fun isAdContent(rootNode: AccessibilityNodeInfo?): Boolean {
+        return findNodeByAnyText(
+            rootNode,
+            listOf("광고", "Sponsored", "스폰서")
+        )
     }
 }
