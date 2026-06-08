@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.graphics.toColorInt
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -221,8 +222,8 @@ class StatsFragment : Fragment() {
         val dataSet = PieDataSet(entries, "")
         // 색상 : 일반(BLue 계열), 숏폼(Red 계열)
         dataSet.colors = listOf(
-            android.graphics.Color.parseColor("#4287f5"),
-            android.graphics.Color.parseColor("#f54242")
+            "#4287f5".toColorInt(),
+            "#f54242".toColorInt()
         )
         dataSet.valueTextSize = 12f
         dataSet.valueTextColor = android.graphics.Color.WHITE
