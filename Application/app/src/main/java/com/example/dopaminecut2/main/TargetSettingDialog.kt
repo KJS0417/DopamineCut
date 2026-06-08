@@ -43,6 +43,26 @@ class TargetSettingDialog : DialogFragment() {
     }
 
     private fun setupListeners() {
+
+        // 체크박스 5개 제한 Logic
+        val checkBoxes = listOf(
+            binding.cbTag1, binding.cbTag2, binding.cbTag3,
+            binding.cbTag4, binding.cbTag5, binding.cbTag6,
+            binding.cbTag7, binding.cbTag8, binding.cbTag9
+        )
+
+        checkBoxes.forEach { checkBox ->
+            checkBox.setOnCheckedChangeListener { buttonView, isChecked ->
+                // 현재 체크된 개수 세기
+                val checkedCount = checkBoxes.count { it.isChecked }
+                if (checkedCount > 5) {
+                    // 5개를 넘으면 마지막 체크를 강제 해제
+                    buttonView.isChecked = false
+                    Toast.makeText(requireContext(), "태그는 5개까지 선택할 수 있습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
         // 취소 버튼 누르면 팝업 닫기
         binding.btnCancel.setOnClickListener {
             dismiss()
@@ -58,8 +78,11 @@ class TargetSettingDialog : DialogFragment() {
                 return@setOnClickListener
             }
 
-            // 뷰모델로 데이터 전달 ( 플랫폼 : youtube, [임시] )
-            viewModel.saveNewTarget("youtube", timeLimitStr.toInt(), countLimitStr.toInt())
+            // 체크된 태그 필터링, 글자만 리스트로 뽑기
+            val selectedTags = checkBoxes.filter { it.isChecked }.map { it.text.toString() }
+
+            // 뷰모델로 데이터 전달
+            viewModel.saveNewTarget(timeLimitStr.toInt(), countLimitStr.toInt(), selectedTags)
         }
     }
 
@@ -73,7 +96,7 @@ class TargetSettingDialog : DialogFragment() {
                         dismiss() // 성공하면 팝업 닫기
                     } else {
                         // 40% 초과 등 에러면 팝업 안 닫고 토스트만 띄우기
-                        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                     }
                 }
             }

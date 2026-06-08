@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // 목표 설정 팝업에서 쓸 데이터 상자
 data class AppTarget(val timeLimitMin: Int, val countLimit: Int)
@@ -44,72 +47,93 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _targetSaveEvent = MutableSharedFlow<String>()
     val targetSaveEvent: SharedFlow<String> get() = _targetSaveEvent
 
-    // Repository에서 데이터 가져오기
+    // Repository에서 데이터 가져오기 (실제 Firebase 연동)
     fun fetchDashboardData() {
-        // 로그인한 유저ID 가져오기
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
+        // 로그인이 풀렸거나 안 되어 있으면 멈춤
         if (currentUserId == null) {
             _userNickname.value = "게스트 (로그인 안됨)"
             return
         }
 
+        // 유저 닉네임 실시간 감시
         viewModelScope.launch {
             val result = repository.getUserInfo(currentUserId)
             result.onSuccess { user ->
-                _userNickname.value = user.nickname // 성공 시 닉네임 띄우기
+                _userNickname.value = user.nickname
             }.onFailure { e ->
-                // 실패하면 에러 이유 출력
                 _userNickname.value = "에러: ${e.message}"
             }
 
-            // 유저 정보 가져오기
             try {
                 repository.getUserInfoFlow(currentUserId).collect { user ->
                     _userNickname.value = user.nickname
                 }
-            } catch (e: Exception) {
-                // 무시
-            }
+            } catch (e: Exception) { }
+        }
+
+        // 오늘 날짜를 "YYYYMMDD" 형태(예: "20260608")로 생성함
+        val todayDate = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
+
+        // 일일 통계 실시간 감시
+        viewModelScope.launch {
+            try {
+                repository.getDailyStatisticsFlow(currentUserId, todayDate).collect { stats ->
+                    _dailyStats.value = stats
+                }
+            } catch (e: Exception) { }
+        }
+
+        // 도파민 로그 실시간 구독
+        viewModelScope.launch {
+            try {
+                repository.getDopamineLogsFlow(currentUserId).collect { logs ->
+                    _dopamineLogs.value = logs
+                }
+            } catch (e: Exception) { }
         }
     }
 
     // 40% 초과 검사 및 저장
-    fun saveNewTarget(platform: String, timeLimitMin: Int, countLimit: Int) {
+    fun saveNewTarget(timeLimitMin: Int, countLimit: Int, selectedTags: List<String>) {
         // 로그인한 유저ID 가져오기
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
-        if(currentUserId == null){
-            viewModelScope.launch { _targetSaveEvent.emit("로그인 정보가 없습니다.") }
+        // 로그인이 풀리거나 비정상 접근 시 차단
+        if (currentUserId == null) {
+            viewModelScope.launch {
+                _targetSaveEvent.emit("로그인 정보가 없습니다. 다시 로그인 해주세요.")
+            }
             return
         }
 
         viewModelScope.launch {
             val stats = _dailyStats.value
 
-            // 현재까지 사용한 시간 (초 -> 분 단위로 환산)
-            val usedSec = stats?.appUsage?.get(platform)?.runTimeSec ?: 0L
-            val usedMin = usedSec / 60
+            // 모든 플랫폼의 하루 사용 시간을 모두 더함 (초 단위)
+            var totalUsedSec = 0L
+            stats?.appUsage?.values?.forEach { appUsage ->
+                totalUsedSec += appUsage.runTimeSec
+            }
 
-            // 이미 목표 시간의 40%를 초과했는지 검사
+            // 초를 분으로 환산
+            val totalUsedMin = totalUsedSec / 60
+
+            // 40% 검사 로직
             val maxAllowedUsedMin = timeLimitMin * 0.4
-            if (usedMin > maxAllowedUsedMin) {
-                // 40%가 넘었으면 에러 메시지 팝업
-                _targetSaveEvent.emit("설정 불가: 이미 새 목표 시간의 40%를 초과하였습니다.")
+            if (totalUsedMin > maxAllowedUsedMin) {
+                // 이미 많이 쓴 상태일 경우 차단
+                _targetSaveEvent.emit("이미 ${totalUsedMin}분을 사용하여 하루 목표 시간 40%를 초과했습니다.")
                 return@launch
             }
 
             try {
-                // 통과 시 Repository에 업데이트 요청.
-                // (updateTargetSettings 함수 호출)
-                repository.updateTargetSettings(currentUserId, listOf(platform))
+                // firebase DB 연동
+                // Repository를 통해 선택된 5개의 태그, 통합 시간과 횟수를 유저 DB에 덮어씌우기
+                repository.updateTargetSettings(currentUserId, timeLimitMin, countLimit, selectedTags)
 
-                // 화면 데이터 갱신
-                val currentMap = _targetSettings.value.toMutableMap()
-                currentMap[platform] = AppTarget(timeLimitMin, countLimit)
-                _targetSettings.value = currentMap
-
-                // 팝업창 닫을 수 있도록 신호 보내기
+                // 팝업 닫힘 (성공)
                 _targetSaveEvent.emit("TARGET_SAVE_SUCCESS")
             } catch (e: Exception) {
                 _targetSaveEvent.emit("저장 실패: ${e.localizedMessage}")

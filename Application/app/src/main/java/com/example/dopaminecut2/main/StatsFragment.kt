@@ -18,6 +18,7 @@ import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import com.github.mikephil.charting.formatter.ValueFormatter
 
 class StatsFragment : Fragment() {
 
@@ -52,10 +53,12 @@ class StatsFragment : Fragment() {
                 launch {
                     viewModel.dailyStats.collect { stats ->
                         if (stats != null) {
-                            initStreakUI(stats)
-                            if(stats.appUsage.isNotEmpty()) {
-                                initBarChart(stats)
-                                initDoughnutChart(stats)
+                            binding.root.post {
+                                initStreakUI(stats)
+                                if(stats.appUsage.isNotEmpty()) {
+                                    initBarChart(stats)
+                                    initDoughnutChart(stats)
+                                }
                             }
                         }
                     }
@@ -65,7 +68,9 @@ class StatsFragment : Fragment() {
                 launch {
                     viewModel.dopamineLogs.collect { logs ->
                         if (logs.isNotEmpty()) {
-                            initLineChart(logs)
+                            binding.root.post {
+                                initLineChart(logs)
+                            }
                         }
                     }
                 }
@@ -74,8 +79,7 @@ class StatsFragment : Fragment() {
     }
 
     // 달성일 확인 캘린더 아이콘 표기 (Streak)
-    private fun initStreakUI(stats: com.example.dopaminecut2.data.model.DailyStatistics) {
-        // TODO: daily_score를 판별, 목표 달성 여부를 달력에 표시하는 로직
+    private fun initStreakUI(stats: DailyStatistics) {
         // ※ 참고 : 기본 CalendarView는 UI 커스텀이 제한적
         // 현재 날짜를 선택해주고, 점수에 따른 알림을 세팅.
         val today = Calendar.getInstance().timeInMillis
@@ -88,8 +92,7 @@ class StatsFragment : Fragment() {
     }
 
     // 주간 숏폼 시청 추이 렌더링 (Bar Chart)
-    private fun initBarChart(stats: com.example.dopaminecut2.data.model.DailyStatistics) {
-        // TODO: app_usage의 shortform_count 합산을 구해서 BarEntry 데이터 변환
+    private fun initBarChart(stats: DailyStatistics) {
         val entries = ArrayList<BarEntry>()
         val labels = ArrayList<String>()
 
@@ -113,14 +116,17 @@ class StatsFragment : Fragment() {
         xAxis.granularity = 1f
         xAxis.setDrawGridLines(false)
 
+
+        binding.barChartWeekly.isDoubleTapToZoomEnabled = false
+        binding.barChartWeekly.setScaleEnabled(false)
         binding.barChartWeekly.description.isEnabled = false
+        binding.barChartWeekly.extraBottomOffset = 15f
         binding.barChartWeekly.animateY(1000)
         binding.barChartWeekly.invalidate()
     }
 
     // 취약 시간대 렌더링 (Line Chart)
-    private fun initLineChart(logs: List<com.example.dopaminecut2.data.model.DopamineLog>) {
-        // TODO: created_at 시간대별로 감점을 묶어서 LineEntry 데이터 변환
+    private fun initLineChart(logs: List<DopamineLog>) {
         // 0시부터 23시까지 시간대별로 숏폼을 몇 번 봤는지 계산.
         val hourCounts = IntArray(24) { 0 }
         val calendar = Calendar.getInstance()
@@ -142,9 +148,49 @@ class StatsFragment : Fragment() {
         dataSet.lineWidth = 2f
         dataSet.circleRadius = 4f
         dataSet.valueTextSize = 10f
+        dataSet.setDrawValues(false)
+
+        dataSet.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String { // 소수점 버리기
+                return if (value == 0f) {
+                    "0회"
+                } else {
+                    "${value.toInt()}회"
+                }
+            }
+        }
+
+        binding.lineChartVulnerableTime.data = LineData(dataSet)
+        binding.lineChartVulnerableTime.extraBottomOffset = 15f
+
+        // X축 설정 - 0시, 1시로 포맷
+        val xAxis = binding.lineChartVulnerableTime.xAxis
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.granularity = 1f // 1 단위로 끊기
+        xAxis.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                return "${value.toInt()}시"
+            }
+        }
+
+        // Y축 설정 - 소수점 제거 및 0부터
+        val yAxisLeft = binding.lineChartVulnerableTime.axisLeft
+        yAxisLeft.granularity = 1f
+        yAxisLeft.axisMinimum = 0f // 그래프가 0부터 시작하도록
+        yAxisLeft.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                return value.toInt().toString()
+            }
+        }
+
+        binding.lineChartVulnerableTime.axisRight.isEnabled = false
 
         binding.lineChartVulnerableTime.data = LineData(dataSet)
         binding.lineChartVulnerableTime.xAxis.position = XAxis.XAxisPosition.BOTTOM
+
+        binding.lineChartVulnerableTime.isDoubleTapToZoomEnabled = false
+        binding.lineChartVulnerableTime.setScaleEnabled(false)
+
         binding.lineChartVulnerableTime.description.isEnabled = false
         binding.lineChartVulnerableTime.animateX(1500) // 선이 왼쪽에서 오른쪽으로 그려지도록.
         binding.lineChartVulnerableTime.invalidate()
@@ -152,8 +198,7 @@ class StatsFragment : Fragment() {
     }
 
     // 앱 사용 목적 분석 렌더링 (Doughnut Chart)
-    private fun initDoughnutChart(stats: com.example.dopaminecut2.data.model.DailyStatistics) {
-        // TODO: run_time_sec vs shortform_time_sec 비율을 PieEntry로 변환
+    private fun initDoughnutChart(stats: DailyStatistics) {
         var totalRunTime = 0L
         var totalShortformTime = 0L
 
@@ -179,15 +224,22 @@ class StatsFragment : Fragment() {
             android.graphics.Color.parseColor("#4287f5"),
             android.graphics.Color.parseColor("#f54242")
         )
-        dataSet.valueTextSize = 14f
+        dataSet.valueTextSize = 12f
         dataSet.valueTextColor = android.graphics.Color.WHITE
+
+        dataSet.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                val minutes = (value / 60).toInt()
+                return "${minutes}분"
+            }
+        }
 
         binding.doughnutChartUsage.data = PieData(dataSet)
 
         // 파이 차트의 가운데를 뚫기 (도넛 차트처럼 보이도록)
         binding.doughnutChartUsage.isDrawHoleEnabled = true
-        binding.doughnutChartUsage.holeRadius = 50f
-        binding.doughnutChartUsage.transparentCircleRadius = 55f
+        binding.doughnutChartUsage.holeRadius = 40f
+        binding.doughnutChartUsage.transparentCircleRadius = 45f
         binding.doughnutChartUsage.centerText = "사용 목적 비율"
 
         binding.doughnutChartUsage.description.isEnabled = false

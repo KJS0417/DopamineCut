@@ -6,7 +6,7 @@ import java.util.Date
 
 data class User(
     @DocumentId
-    val userId: String = "",                     // 문서 ID (Firebase Auth UID)
+    val userId: String = "",
 
     val email: String = "",
     val nickname: String = "",
@@ -14,8 +14,18 @@ data class User(
     @PropertyName("created_at")
     val createdAt: Date = Date(),
 
-    val restrictions: List<String> = emptyList(), // 차단 카테고리
-    val inventory: Inventory = Inventory()        // 아이템 인벤토리 (Map)
+    // 집중 페널티 태그 (최대 5개)
+    val restrictions: List<String> = emptyList(),
+
+    // 총 목표 사용 시간 (분)
+    @PropertyName("target_time_min")
+    val targetTimeMin: Int = 120,
+
+    // 총 숏폼 시청 제한 횟수 (회)
+    @PropertyName("target_shortform_count")
+    val targetCount: Int = 15,
+
+    val inventory: Inventory = Inventory()
 )
 
 data class Inventory(

@@ -1,5 +1,6 @@
 package com.example.dopaminecut2.data.remote
 
+import com.example.dopaminecut2.data.model.DailyStatistics
 import com.example.dopaminecut2.data.model.DopamineLog
 import com.example.dopaminecut2.data.model.User
 import com.google.firebase.firestore.FieldValue
@@ -38,10 +39,57 @@ class FirebaseDataSource(
     }
 
     // 차단 카테고리/목표 설정 업데이트
+    /*
     suspend fun updateUserRestrictions(userId: String, restrictions: List<String>) {
         firestore.collection("users").document(userId)
             .update("restrictions", restrictions)
             .await() // 코루틴을 통해 서버 응답이 올 때까지 대기
+    }
+    */
+
+    // 차단 카테고리/통합 목표 설정 업데이트
+    suspend fun updateUserTargetSettings(userId: String, timeLimit: Int, countLimit: Int, tags: List<String>) {
+        val updates = mapOf(
+            "target_time_min" to timeLimit,
+            "target_shortform_count" to countLimit,
+            "restrictions" to tags
+        )
+        firestore.collection("users").document(userId)
+            .update(updates)
+            .await()
+    }
+
+    // 오늘 날짜의 앱 통계 실시간 스트림
+    fun getDailyStatisticsStream(userId: String, date: String): Flow<DailyStatistics?> = callbackFlow {
+        val documentId = "${userId}_${date}"
+        val listener = firestore.collection("daily_statistics").document(documentId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val stats = snapshot?.toObject(DailyStatistics::class.java)
+                trySend(stats).isSuccess
+            }
+        awaitClose { listener.remove() }
+    }
+
+    // 해당 유저의 도파민 시청 기록 실시간 스트림
+    fun getDopamineLogsStream(userId: String): Flow<List<DopamineLog>> = callbackFlow {
+        val listener = firestore.collection("dopamine_logs")
+            .whereEqualTo("user_id", userId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val logs = snapshot?.documents?.mapNotNull {
+                    it.toObject(DopamineLog::class.java)
+                } ?: emptyList()
+
+                trySend(logs).isSuccess
+            }
+        awaitClose { listener.remove() }
     }
 
     // 숏폼 시청 로그 저장 (문서 ID는 자동 생성)

@@ -63,7 +63,9 @@ class HomeFragment : Fragment() {
                 launch {
                     viewModel.dopamineLogs.collect { logs ->
                         if (logs.isNotEmpty()) {
-                            initPieChart(logs)
+                            binding.pieChartCategory.post {
+                                initPieChart(logs)
+                            }
                         }
                     }
                 }
@@ -72,7 +74,9 @@ class HomeFragment : Fragment() {
                 launch {
                     viewModel.dailyStats.collect { stats ->
                         if (stats != null && stats.appUsage.isNotEmpty()) {
-                            initHorizontalBarChart(stats.appUsage)
+                            binding.barChartAppRanking.post {
+                                initHorizontalBarChart(stats.appUsage)
+                            }
                         }
                     }
                 }
@@ -95,7 +99,21 @@ class HomeFragment : Fragment() {
 
         // 차트 색상 및 글씨 크기 세팅
         val dataSet = PieDataSet(entries, "")
-        dataSet.colors = ColorTemplate.MATERIAL_COLORS.toList() // 기본 제공 색상
+
+        // color 리스트
+        val pieColors = listOf(
+            android.graphics.Color.parseColor("#FF9999"), // 빨강
+            android.graphics.Color.parseColor("#FFCC99"), // 주황
+            android.graphics.Color.parseColor("#FFFF99"), // 노랑
+            android.graphics.Color.parseColor("#99FF99"), // 초록
+            android.graphics.Color.parseColor("#99CCFF"), // 파랑
+            android.graphics.Color.parseColor("#9999FF"), // 남색
+            android.graphics.Color.parseColor("#CC99FF"), // 보라
+            android.graphics.Color.parseColor("#FF99CC"), // 핑크
+            android.graphics.Color.parseColor("#B3B3B3")  // 회색 (기타 등)
+        )
+
+        dataSet.colors = pieColors
         dataSet.valueTextSize = 14f
         dataSet.valueTextColor = android.graphics.Color.WHITE // 흰색 글씨
 
@@ -110,9 +128,6 @@ class HomeFragment : Fragment() {
 
     // 앱 사용 시간 랭킹 렌더링 (Horizontal Bar)
     private fun initHorizontalBarChart(appUsage: Map<String, com.example.dopaminecut2.data.model.AppUsage>) {
-        // TODO: MPAndroidChart 라이브러리 사용,
-        // appUsage 데이터를 가로 막대 차트용 데이터로 변환해 넣는 코드 작성.
-
         // 사용 시간이 많은 순서대로 내림차순 정렬 (runTimeSec)
         val sortedUsage = appUsage.entries.sortedByDescending { it.value.runTimeSec }
 
@@ -145,9 +160,15 @@ class HomeFragment : Fragment() {
         xAxis.setDrawGridLines(false) // 배경 격자무늬 제거
         xAxis.granularity = 1f // 레이블 겹치지않게
 
+        binding.barChartAppRanking.isDoubleTapToZoomEnabled = false // 더블 클릭 확대 방지용
+        binding.barChartAppRanking.setScaleEnabled(false) // 두 손가락으로..? 줌인 방지용
+
         // 기타 차트 디자인 정리
         binding.barChartAppRanking.description.isEnabled = false
         binding.barChartAppRanking.axisRight.isEnabled = false // 오른쪽 숫자 제거
+
+        binding.barChartAppRanking.extraLeftOffset = 30f // 왼쪽 여백
+
         binding.barChartAppRanking.animateY(1000) // 애니메이션 효과
         binding.barChartAppRanking.invalidate()
 
