@@ -174,8 +174,31 @@
     }
 
     .hero-card h2 {
-      margin: 0 0 12px;
+      margin: 0;
       font-size: 19px;
+    }
+
+    .popular-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .popular-label {
+      flex: 0 0 auto;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .popular-list {
+      display: grid;
+      gap: 2px;
     }
 
     .rank-item {
@@ -184,6 +207,19 @@
       align-items: center;
       padding: 12px 0;
       border-top: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .rank-item.clickable {
+      cursor: pointer;
+      border-radius: 16px;
+      padding: 12px 10px;
+      margin: 0 -10px;
+      transition: background 0.18s ease, transform 0.18s ease;
+    }
+
+    .rank-item.clickable:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(3px);
     }
 
     .rank-number {
@@ -785,26 +821,17 @@
       </div>
 
       <aside class="hero-card">
-        <h2>🔥 지금 많이 보는 글</h2>
-        <div class="rank-item">
-          <span class="rank-number">1</span>
-          <div>
-            <strong>자기 전 숏폼 차단 루틴 공유</strong>
-            <span>좋아요 41 · 댓글 12</span>
-          </div>
+        <div class="popular-head">
+          <h2>🔥 지금 많이 보는 글</h2>
+          <span class="popular-label">실시간 인기</span>
         </div>
-        <div class="rank-item">
-          <span class="rank-number">2</span>
-          <div>
-            <strong>오늘 10분만 사용 성공했습니다</strong>
-            <span>좋아요 29 · 댓글 8</span>
-          </div>
-        </div>
-        <div class="rank-item">
-          <span class="rank-number">3</span>
-          <div>
-            <strong>앱 삭제보다 효과 있었던 방법</strong>
-            <span>좋아요 24 · 댓글 6</span>
+        <div id="popularPosts" class="popular-list">
+          <div class="rank-item empty-rank">
+            <span class="rank-number">-</span>
+            <div>
+              <strong>아직 인기 글이 없습니다</strong>
+              <span>게시글이 등록되면 자동으로 표시됩니다</span>
+            </div>
           </div>
         </div>
       </aside>
@@ -954,14 +981,14 @@
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyBc41ylE5iQ4u0tB2cOZ-jvpaieSo2Kai0",
-    authDomain: "dopaminecut-community.firebaseapp.com",
-    databaseURL: "https://dopaminecut-community-default-rtdb.firebaseio.com",
-    projectId: "dopaminecut-community",
-    storageBucket: "dopaminecut-community.firebasestorage.app",
-    messagingSenderId: "440075672976",
-    appId: "1:440075672976:web:7df1783a1c60b4d262a715",
-    measurementId: "G-RJMDXP5NHH"
+    apiKey: "AIzaSyDn5zZX_POnedat9kCq1SgbLJaEi-YUlNM",
+    authDomain: "dopaminecut-d7a70.firebaseapp.com",
+    databaseURL: "https://dopaminecut-d7a70-default-rtdb.firebaseio.com",
+    projectId: "dopaminecut-d7a70",
+    storageBucket: "dopaminecut-d7a70.firebasestorage.app",
+    messagingSenderId: "556775554571",
+    appId: "1:556775554571:web:4ac8cdad444f5beb9c910e",
+    measurementId: "G-RDCD93X4KY"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -994,6 +1021,7 @@
     posts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
     renderPosts();
+    renderPopularPosts();
   });
 
   function getBadgeClass(category) {
@@ -1092,6 +1120,67 @@
     });
 
     updateStats();
+  }
+
+
+  function renderPopularPosts() {
+    const popularPosts = document.getElementById("popularPosts");
+    if (!popularPosts) return;
+
+    const rankedPosts = [...posts]
+      .sort((a, b) => {
+        const scoreA = (a.likes || 0) + ((a.comments || []).length * 2);
+        const scoreB = (b.likes || 0) + ((b.comments || []).length * 2);
+
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      })
+      .slice(0, 3);
+
+    if (rankedPosts.length === 0) {
+      popularPosts.innerHTML = `
+        <div class="rank-item empty-rank">
+          <span class="rank-number">-</span>
+          <div>
+            <strong>아직 인기 글이 없습니다</strong>
+            <span>게시글이 등록되면 자동으로 표시됩니다</span>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    popularPosts.innerHTML = rankedPosts.map((post, index) => `
+      <div class="rank-item clickable" onclick="focusPost('${post.id}')">
+        <span class="rank-number">${index + 1}</span>
+        <div>
+          <strong>${escapeHtml(post.title)}</strong>
+          <span>${escapeHtml(post.category)} · 좋아요 ${post.likes || 0} · 댓글 ${(post.comments || []).length}</span>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function focusPost(id) {
+    const post = posts.find((item) => item.id === id);
+    if (!post) return;
+
+    currentCategory = "전체";
+    document.getElementById("searchInput").value = post.title || "";
+
+    document.querySelectorAll(".category-btn").forEach(button => {
+      button.classList.toggle("active", button.dataset.category === "전체");
+    });
+
+    renderPosts();
+
+    const container = document.querySelector(".container");
+    if (container) {
+      window.scrollTo({
+        top: container.offsetTop - 80,
+        behavior: "smooth"
+      });
+    }
   }
 
   function updateStats() {
@@ -1298,6 +1387,7 @@
   window.setCategory = setCategory;
   window.resetView = resetView;
   window.renderPosts = renderPosts;
+  window.focusPost = focusPost;
 </script>
 </body>
 </html>
