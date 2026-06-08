@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.graphics.toColorInt
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -86,7 +87,6 @@ class HomeFragment : Fragment() {
 
     // 카테고리 비율 렌더링 (Pie Chart)
     private fun initPieChart(logs: List<DopamineLog>) {
-        // TODO: MPAndroidChart 라이브러리 사용
         val categoryCountMap = logs.groupingBy { it.category }.eachCount()
 
         // 파이 차트에 들어갈 엔트리 만들기
@@ -102,15 +102,15 @@ class HomeFragment : Fragment() {
 
         // color 리스트
         val pieColors = listOf(
-            android.graphics.Color.parseColor("#FF9999"), // 빨강
-            android.graphics.Color.parseColor("#FFCC99"), // 주황
-            android.graphics.Color.parseColor("#FFFF99"), // 노랑
-            android.graphics.Color.parseColor("#99FF99"), // 초록
-            android.graphics.Color.parseColor("#99CCFF"), // 파랑
-            android.graphics.Color.parseColor("#9999FF"), // 남색
-            android.graphics.Color.parseColor("#CC99FF"), // 보라
-            android.graphics.Color.parseColor("#FF99CC"), // 핑크
-            android.graphics.Color.parseColor("#B3B3B3")  // 회색 (기타 등)
+            "#FF9999".toColorInt(), // 빨강
+            "#FFCC99".toColorInt(), // 주황
+            "#FFD54F".toColorInt(), // 노랑 (가독성 추가를 위한 개나리색)
+            "#99FF99".toColorInt(), // 초록
+            "#99CCFF".toColorInt(), // 파랑
+            "#9999FF".toColorInt(), // 남색
+            "#CC99FF".toColorInt(), // 보라
+            "#FF99CC".toColorInt(), // 핑크
+            "#B3B3B3".toColorInt()  // 회색 (기타 등)
         )
 
         dataSet.colors = pieColors
@@ -119,6 +119,13 @@ class HomeFragment : Fragment() {
 
         // 차트에 데이터 적용/그리기
         val data = PieData(dataSet)
+
+        data.setValueFormatter(object : com.github.mikephil.charting.formatter.ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                return "${value.toInt()}회"
+            }
+        })
+
         binding.pieChartCategory.data = data
         binding.pieChartCategory.description.isEnabled = false // 보기 싫은 설명 텍스트 숨기기
         binding.pieChartCategory.setEntryLabelColor(android.graphics.Color.BLACK) // 검정색 라벨
@@ -127,7 +134,7 @@ class HomeFragment : Fragment() {
     }
 
     // 앱 사용 시간 랭킹 렌더링 (Horizontal Bar)
-    private fun initHorizontalBarChart(appUsage: Map<String, com.example.dopaminecut2.data.model.AppUsage>) {
+    private fun initHorizontalBarChart(appUsage: Map<String, AppUsage>) {
         // 사용 시간이 많은 순서대로 내림차순 정렬 (runTimeSec)
         val sortedUsage = appUsage.entries.sortedByDescending { it.value.runTimeSec }
 

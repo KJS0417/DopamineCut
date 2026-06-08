@@ -179,7 +179,7 @@ class StatsFragment : Fragment() {
         yAxisLeft.axisMinimum = 0f // 그래프가 0부터 시작하도록
         yAxisLeft.valueFormatter = object : ValueFormatter() {
             override fun getFormattedValue(value: Float): String {
-                return value.toInt().toString()
+                return "${value.toInt()}회"
             }
         }
 
