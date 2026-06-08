@@ -8,6 +8,7 @@ import com.example.dopaminecut2.data.remote.FirebaseDataSource
 import com.example.dopaminecut2.data.repository.UserRepository
 import com.example.dopaminecut2.data.model.DailyStatistics
 import com.example.dopaminecut2.data.model.DopamineLog
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -25,6 +26,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         DataStoreManager(application)
     )
 
+    private val _userNickname = MutableStateFlow<String>("로딩중...")
+    val userNickname: StateFlow<String> get() = _userNickname
+
     // 대시보드 통계 데이터 (Home, Stats 화면에서 바라보는 곳)
     private val _dailyStats = MutableStateFlow<DailyStatistics?>(null)
     val dailyStats: StateFlow<DailyStatistics?> get() = _dailyStats
@@ -41,18 +45,45 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val targetSaveEvent: SharedFlow<String> get() = _targetSaveEvent
 
     // Repository에서 데이터 가져오기
-    fun fetchDashboardData(userId: String) {
+    fun fetchDashboardData() {
+        // 로그인한 유저ID 가져오기
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        if (currentUserId == null) {
+            _userNickname.value = "게스트 (로그인 안됨)"
+            return
+        }
+
         viewModelScope.launch {
-            // 유저 정보 실시간으로 가져오기 (getUserInfoFlow 활용)
-            repository.getUserInfoFlow(userId).collect { user ->
-                // TODO: 유저 데이터가 들어오면 차트에 맞게 가공하는 로직 추가
-                // (Firestore DB 구조에 따라 다르게 연동)
+            val result = repository.getUserInfo(currentUserId)
+            result.onSuccess { user ->
+                _userNickname.value = user.nickname // 성공 시 닉네임 띄우기
+            }.onFailure { e ->
+                // 실패하면 에러 이유 출력
+                _userNickname.value = "에러: ${e.message}"
+            }
+
+            // 유저 정보 가져오기
+            try {
+                repository.getUserInfoFlow(currentUserId).collect { user ->
+                    _userNickname.value = user.nickname
+                }
+            } catch (e: Exception) {
+                // 무시
             }
         }
     }
 
     // 40% 초과 검사 및 저장
     fun saveNewTarget(platform: String, timeLimitMin: Int, countLimit: Int) {
+        // 로그인한 유저ID 가져오기
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+
+        if(currentUserId == null){
+            viewModelScope.launch { _targetSaveEvent.emit("로그인 정보가 없습니다.") }
+            return
+        }
+
         viewModelScope.launch {
             val stats = _dailyStats.value
 
@@ -71,9 +102,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 // 통과 시 Repository에 업데이트 요청.
                 // (updateTargetSettings 함수 호출)
-                repository.updateTargetSettings("임시유저ID", listOf(platform))
+                repository.updateTargetSettings(currentUserId, listOf(platform))
 
-                // 화면 데이터 갱신 (임시)
+                // 화면 데이터 갱신
                 val currentMap = _targetSettings.value.toMutableMap()
                 currentMap[platform] = AppTarget(timeLimitMin, countLimit)
                 _targetSettings.value = currentMap

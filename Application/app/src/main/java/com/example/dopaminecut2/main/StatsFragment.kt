@@ -9,8 +9,15 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.example.dopaminecut2.data.model.DailyStatistics
+import com.example.dopaminecut2.data.model.DopamineLog
 import com.example.dopaminecut2.databinding.FragmentStatsBinding
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.utils.ColorTemplate
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class StatsFragment : Fragment() {
 
@@ -46,8 +53,10 @@ class StatsFragment : Fragment() {
                     viewModel.dailyStats.collect { stats ->
                         if (stats != null) {
                             initStreakUI(stats)
-                            initBarChart(stats)
-                            initDoughnutChart(stats)
+                            if(stats.appUsage.isNotEmpty()) {
+                                initBarChart(stats)
+                                initDoughnutChart(stats)
+                            }
                         }
                     }
                 }
@@ -67,25 +76,123 @@ class StatsFragment : Fragment() {
     // 달성일 확인 캘린더 아이콘 표기 (Streak)
     private fun initStreakUI(stats: com.example.dopaminecut2.data.model.DailyStatistics) {
         // TODO: daily_score를 판별, 목표 달성 여부를 달력에 표시하는 로직
+        // ※ 참고 : 기본 CalendarView는 UI 커스텀이 제한적
+        // 현재 날짜를 선택해주고, 점수에 따른 알림을 세팅.
+        val today = Calendar.getInstance().timeInMillis
+        binding.calendarStreak.date = today
+
+        // 달력을 누르면 나오는 이벤트
+        binding.calendarStreak.setOnDateChangeListener { _, year, month, dayOfMonth ->
+            // TODO : 추후 달력 DB를 짜면 여기에 연동
+        }
     }
 
     // 주간 숏폼 시청 추이 렌더링 (Bar Chart)
     private fun initBarChart(stats: com.example.dopaminecut2.data.model.DailyStatistics) {
         // TODO: app_usage의 shortform_count 합산을 구해서 BarEntry 데이터 변환
+        val entries = ArrayList<BarEntry>()
+        val labels = ArrayList<String>()
+
+        var index = 0f
+        for ((platform, usage) in stats.appUsage) {
+            entries.add(BarEntry(index, usage.shortformCount.toFloat()))
+            labels.add(platform.replaceFirstChar { it.uppercase() })
+            index += 1f
+        }
+
+        val dataSet = BarDataSet(entries, "숏폼 시청 횟수(회)")
+        dataSet.colors = ColorTemplate.COLORFUL_COLORS.toList()
+        dataSet.valueTextSize = 12f
+
+        binding.barChartWeekly.data = BarData(dataSet)
+
+        // X축 세팅
+        val xAxis = binding.barChartWeekly.xAxis
+        xAxis.position = XAxis.XAxisPosition.BOTTOM
+        xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+        xAxis.granularity = 1f
+        xAxis.setDrawGridLines(false)
+
+        binding.barChartWeekly.description.isEnabled = false
+        binding.barChartWeekly.animateY(1000)
+        binding.barChartWeekly.invalidate()
     }
 
     // 취약 시간대 렌더링 (Line Chart)
     private fun initLineChart(logs: List<com.example.dopaminecut2.data.model.DopamineLog>) {
         // TODO: created_at 시간대별로 감점을 묶어서 LineEntry 데이터 변환
+        // 0시부터 23시까지 시간대별로 숏폼을 몇 번 봤는지 계산.
+        val hourCounts = IntArray(24) { 0 }
+        val calendar = Calendar.getInstance()
+
+        logs.forEach { log ->
+            calendar.time = log.createdAt
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            hourCounts[hour]++
+        }
+
+        val entries = ArrayList<Entry>()
+        for (i in 0..23) {
+            entries.add(Entry(i.toFloat(), hourCounts[i].toFloat()))
+        }
+
+        val dataSet = LineDataSet(entries, "시간대별 숏폼 시청량")
+        dataSet.color = android.graphics.Color.RED // 취약 시간대는 빨간색.
+        dataSet.setCircleColor(android.graphics.Color.RED)
+        dataSet.lineWidth = 2f
+        dataSet.circleRadius = 4f
+        dataSet.valueTextSize = 10f
+
+        binding.lineChartVulnerableTime.data = LineData(dataSet)
+        binding.lineChartVulnerableTime.xAxis.position = XAxis.XAxisPosition.BOTTOM
+        binding.lineChartVulnerableTime.description.isEnabled = false
+        binding.lineChartVulnerableTime.animateX(1500) // 선이 왼쪽에서 오른쪽으로 그려지도록.
+        binding.lineChartVulnerableTime.invalidate()
+
     }
 
     // 앱 사용 목적 분석 렌더링 (Doughnut Chart)
     private fun initDoughnutChart(stats: com.example.dopaminecut2.data.model.DailyStatistics) {
         // TODO: run_time_sec vs shortform_time_sec 비율을 PieEntry로 변환
+        var totalRunTime = 0L
+        var totalShortformTime = 0L
 
-        // MPAndroidChart 설정 (가운데를 뚫어서 도넛 모양으로 만듦)
+        // 모든 앱의 사용 시간, 숏폼 시청 시간 합산.
+
+        stats.appUsage.values.forEach {
+            totalRunTime += it.runTimeSec
+            totalShortformTime += it.shortformTimeSec
+        }
+
+        // 일반 시청 시간 = 전체 시간 - 숏폼 시간
+        val generalTime = totalRunTime - totalShortformTime
+
+        val entries = ArrayList<PieEntry>()
+        if (totalRunTime > 0) {
+            entries.add(PieEntry(generalTime.toFloat(), "일반 목적"))
+            entries.add(PieEntry(totalShortformTime.toFloat(), "숏폼 시청"))
+        }
+
+        val dataSet = PieDataSet(entries, "")
+        // 색상 : 일반(BLue 계열), 숏폼(Red 계열)
+        dataSet.colors = listOf(
+            android.graphics.Color.parseColor("#4287f5"),
+            android.graphics.Color.parseColor("#f54242")
+        )
+        dataSet.valueTextSize = 14f
+        dataSet.valueTextColor = android.graphics.Color.WHITE
+
+        binding.doughnutChartUsage.data = PieData(dataSet)
+
+        // 파이 차트의 가운데를 뚫기 (도넛 차트처럼 보이도록)
         binding.doughnutChartUsage.isDrawHoleEnabled = true
         binding.doughnutChartUsage.holeRadius = 50f
+        binding.doughnutChartUsage.transparentCircleRadius = 55f
+        binding.doughnutChartUsage.centerText = "사용 목적 비율"
+
+        binding.doughnutChartUsage.description.isEnabled = false
+        binding.doughnutChartUsage.animateY(1000)
+        binding.doughnutChartUsage.invalidate()
     }
 
     override fun onDestroyView() {
