@@ -108,7 +108,7 @@ class AppBlockService : AccessibilityService() {
 
         // 차단 로직 : 목표를 초과했는지 검사
         if (isTargetExceeded()) {
-            executeAppBlock("도파민 목표를 초과하여 앱이 차단되었습니다.")
+            executeAppBlock()
             return
         }
 
