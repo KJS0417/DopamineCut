@@ -56,7 +56,7 @@ class FirebaseDataSource(
         )
         // .update() 대신 .set(SetOptions.merge())를 쓰면 에러 없이 완벽히 저장됩니다!
         firestore.collection("users").document(userId)
-            .set(updates, com.google.firebase.firestore.SetOptions.merge())
+            .set(updates, SetOptions.merge())
             .await()
     }
 

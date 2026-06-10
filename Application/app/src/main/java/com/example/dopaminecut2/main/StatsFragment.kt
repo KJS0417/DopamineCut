@@ -80,6 +80,7 @@ class StatsFragment : Fragment() {
     }
 
     // 달성일 확인 캘린더 아이콘 표기 (Streak)
+    // stats 사용 예정
     private fun initStreakUI(stats: DailyStatistics) {
         // ※ 참고 : 기본 CalendarView는 UI 커스텀이 제한적
         // 현재 날짜를 선택해주고, 점수에 따른 알림을 세팅.

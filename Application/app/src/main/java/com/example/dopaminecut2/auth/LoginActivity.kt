@@ -21,7 +21,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
         // 이미 로그인된 계정이 있으면 바로 MainActivity로 이동
         val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
-            startActivity(android.content.Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
     }

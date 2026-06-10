@@ -18,8 +18,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// 목표 설정 팝업에서 쓸 데이터 상자
-data class AppTarget(val timeLimitMin: Int, val countLimit: Int)
+// 목표 설정 팝업에서 쓸 데이터 상자 (구조 변경)
+// data class AppTarget(val timeLimitMin: Int, val countLimit: Int)
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -77,7 +77,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _currentTargetMin.value = user.targetTimeMin
                     _currentTargetCount.value = user.targetCount
                 }
-            } catch (e: Exception) { }
+            } catch (_: Exception) { }
         }
 
         // 오늘 날짜를 "YYYYMMDD" 형태(예: "20260608")로 생성함
@@ -89,7 +89,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 repository.getDailyStatisticsFlow(currentUserId, todayDate).collect { stats ->
                     _dailyStats.value = stats
                 }
-            } catch (e: Exception) { }
+            } catch (_: Exception) { }
         }
 
         // 도파민 로그 실시간 구독
@@ -98,7 +98,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 repository.getDopamineLogsFlow(currentUserId).collect { logs ->
                     _dopamineLogs.value = logs
                 }
-            } catch (e: Exception) { }
+            } catch (_: Exception) { }
         }
     }
 

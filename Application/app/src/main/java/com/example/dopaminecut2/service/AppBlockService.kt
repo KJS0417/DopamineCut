@@ -137,15 +137,15 @@ class AppBlockService : AccessibilityService() {
 
     // TODO : 일반 목적으로 인해 튕기기로 함. 토론 후 다른 대안 필요할 수 있음.
     // 차단 실행 (홈 화면으로 튕기기)
-    private fun executeAppBlock(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    private fun executeAppBlock() {
+        Toast.makeText(this, "도파민 목표 초과 : 앱이 차단되었습니다.", Toast.LENGTH_SHORT).show()
         performGlobalAction(GLOBAL_ACTION_HOME) // 홈 화면 으로 강제 이동
     }
 
     private fun saveDataToFirebase(platform: String, durationSec: Long) {
         serviceScope.launch {
             val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
-            val todayDate = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault()).format(java.util.Date())
+            val todayDate = SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(Date())
 
             try {
                 userRepository.incrementAppUsage(
