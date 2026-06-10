@@ -17,6 +17,13 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>(ActivityLoginBinding::i
 
     override fun initView() {
         // 화면 켜질 때 초기 세팅 (현재는 비워둠)
+
+        // 이미 로그인된 계정이 있으면 바로 MainActivity로 이동
+        val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            startActivity(android.content.Intent(this, MainActivity::class.java))
+            finish()
+        }
     }
 
     override fun setupListeners() {

@@ -108,15 +108,31 @@ class StatsFragment : Fragment() {
         dataSet.colors = ColorTemplate.COLORFUL_COLORS.toList()
         dataSet.valueTextSize = 12f
 
+        // 차트 위 숫자 소수점 제거
+        dataSet.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                return "${value.toInt()}회"
+            }
+        }
+
         binding.barChartWeekly.data = BarData(dataSet)
 
-        // X축 세팅
         val xAxis = binding.barChartWeekly.xAxis
         xAxis.position = XAxis.XAxisPosition.BOTTOM
         xAxis.valueFormatter = IndexAxisValueFormatter(labels)
         xAxis.granularity = 1f
         xAxis.setDrawGridLines(false)
 
+        // 왼쪽 Y축 소수점 제거 및 1단위로 끊음
+        val yAxisLeft = binding.barChartWeekly.axisLeft
+        yAxisLeft.granularity = 1f
+        yAxisLeft.axisMinimum = 0f
+        yAxisLeft.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                return "${value.toInt()}회"
+            }
+        }
+        binding.barChartWeekly.axisRight.isEnabled = false
 
         binding.barChartWeekly.isDoubleTapToZoomEnabled = false
         binding.barChartWeekly.setScaleEnabled(false)

@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 
 
 class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate) {
+    private var backPressedTime: Long = 0
     // 뷰모델 연결
     private val viewModel: MainViewModel by viewModels()
 
@@ -19,9 +20,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         if (supportFragmentManager.findFragmentById(R.id.main_frame_layout) == null) {
             replaceFragment(HomeFragment())
         }
-
-        // 뷰모델에서 유저정보 가져오기
         viewModel.fetchDashboardData()
+
+        // 뒤로가기 두 번 누를 때만 종료되도록 로직 추가
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (System.currentTimeMillis() > backPressedTime + 2000) {
+                    backPressedTime = System.currentTimeMillis()
+                    showToast("\'뒤로\' 버튼을 한 번 더 누르시면 종료됩니다.")
+                } else {
+                    finish() // 2초 안에 두 번 누르면 종료
+                }
+            }
+        })
     }
 
     override fun setupListeners() {

@@ -10,13 +10,81 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- 오늘의 도파민 현황 (프로그레스 바) -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="오늘의 도파민 현황"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="16dp"/>
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="오늘의 도파민 현황"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- 총 사용 시간 프로그레스 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="총 사용 시간"
+                    android:textStyle="bold"
+                    android:textColor="#4f46e5"/>
+                <TextView
+                    android:id="@+id/tvTimeStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0분 / 0분"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/pbTime"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="12dp"
+                android:progressTint="#4f46e5"
+                android:progressBackgroundTint="#E5E7EB"
+                android:max="100"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- 숏폼 시청 횟수 프로그레스 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="숏폼 시청 횟수"
+                    android:textStyle="bold"
+                    android:textColor="#ef4444"/>
+                <TextView
+                    android:id="@+id/tvCountStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0회 / 0회"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+            <ProgressBar
+                android:id="@+id/pbCount"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="12dp"
+                android:progressTint="#ef4444"
+                android:progressBackgroundTint="#E5E7EB"
+                android:max="100" />
+        </LinearLayout>
 
         <!-- 파이 차트, 카테고리 비율 -->
         <TextView

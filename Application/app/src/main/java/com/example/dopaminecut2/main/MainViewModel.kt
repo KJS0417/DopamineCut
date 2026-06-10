@@ -32,16 +32,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _userNickname = MutableStateFlow<String>("로딩중...")
     val userNickname: StateFlow<String> get() = _userNickname
 
+    // 내 목표 시간 기억용 변수 (HomeFragment에서 변수를 가져가도록 함)
+    private val _currentTargetMin = MutableStateFlow(120)
+    val currentTargetMin: StateFlow<Int> get() = _currentTargetMin
+
+    private val _currentTargetCount = MutableStateFlow(15)
+    val currentTargetCount: StateFlow<Int> get() = _currentTargetCount
+
     // 대시보드 통계 데이터 (Home, Stats 화면에서 바라보는 곳)
     private val _dailyStats = MutableStateFlow<DailyStatistics?>(null)
     val dailyStats: StateFlow<DailyStatistics?> get() = _dailyStats
 
     private val _dopamineLogs = MutableStateFlow<List<DopamineLog>>(emptyList())
     val dopamineLogs: StateFlow<List<DopamineLog>> get() = _dopamineLogs
-
-    // 목표 설정 데이터 (팝업에서 바라보는 곳)
-    private val _targetSettings = MutableStateFlow<Map<String, AppTarget>>(emptyMap())
-    val targetSettings: StateFlow<Map<String, AppTarget>> get() = _targetSettings
 
     // 팝업으로 쏠 결과 메시지
     private val _targetSaveEvent = MutableSharedFlow<String>()
@@ -57,18 +60,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        // 유저 닉네임 실시간 감시
+        // 유저 닉네임 및 목표 시간 실시간 감시
         viewModelScope.launch {
             val result = repository.getUserInfo(currentUserId)
             result.onSuccess { user ->
                 _userNickname.value = user.nickname
+                _currentTargetMin.value = user.targetTimeMin // 앱 켤 때 목표 가져오기
+                _currentTargetCount.value = user.targetCount
             }.onFailure { e ->
                 _userNickname.value = "에러: ${e.message}"
             }
 
-            try {
+            try { // DB 바뀌면 실시간 반영
                 repository.getUserInfoFlow(currentUserId).collect { user ->
                     _userNickname.value = user.nickname
+                    _currentTargetMin.value = user.targetTimeMin
+                    _currentTargetCount.value = user.targetCount
                 }
             } catch (e: Exception) { }
         }
@@ -95,12 +102,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // 40% 초과 검사 및 저장
+    // 60% 초과 검사 및 저장
     fun saveNewTarget(timeLimitMin: Int, countLimit: Int, selectedTags: List<String>) {
-        // 로그인한 유저ID 가져오기
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
 
-        // 로그인이 풀리거나 비정상 접근 시 차단
         if (currentUserId == null) {
             viewModelScope.launch {
                 _targetSaveEvent.emit("로그인 정보가 없습니다. 다시 로그인 해주세요.")
@@ -117,23 +122,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 totalUsedSec += appUsage.runTimeSec
             }
 
-            // 초를 분으로 환산
-            val totalUsedMin = totalUsedSec / 60
+            // 60% 검사를 초(Second) 단위로 정밀하게 계산
+            val maxAllowedUsedSec = (timeLimitMin * 60) * 0.6
 
-            // 40% 검사 로직
-            val maxAllowedUsedMin = timeLimitMin * 0.4
-            if (totalUsedMin > maxAllowedUsedMin) {
-                // 이미 많이 쓴 상태일 경우 차단
-                _targetSaveEvent.emit("이미 ${totalUsedMin}분을 사용하여 하루 목표 시간 40%를 초과했습니다.")
+            if (totalUsedSec > maxAllowedUsedSec) {
+                // 몇 분 몇 초 썼는지 텍스트로 변환
+                val usedMin = totalUsedSec / 60
+                val usedSec = totalUsedSec % 60
+
+                _targetSaveEvent.emit("이미 ${usedMin}분 ${usedSec}초를 사용하여 하루 목표 60%를 초과했습니다!")
                 return@launch
             }
 
             try {
                 // firebase DB 연동
-                // Repository를 통해 선택된 5개의 태그, 통합 시간과 횟수를 유저 DB에 덮어씌우기
                 repository.updateTargetSettings(currentUserId, timeLimitMin, countLimit, selectedTags)
-
-                // 팝업 닫힘 (성공)
+                // DB 저장 성공 시, 화면의 목표 시간 즉시 변경
+                _currentTargetMin.value = timeLimitMin
                 _targetSaveEvent.emit("TARGET_SAVE_SUCCESS")
             } catch (e: Exception) {
                 _targetSaveEvent.emit("저장 실패: ${e.localizedMessage}")
