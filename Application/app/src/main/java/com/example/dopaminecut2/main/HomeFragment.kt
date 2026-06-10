@@ -45,11 +45,35 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 팝업 버튼 클릭 이벤트 연결
+        // 버튼 클릭 (60% [hard lock] : 시간이나 횟수 중 하나라도 60% 넘기면 잠김)
         binding.btnOpenTargetSetting.setOnClickListener {
-            // TargetSettingDialog 팝업 띄우기
-            val dialog = TargetSettingDialog()
-            dialog.show(childFragmentManager, "TargetSettingDialog")
+            val stats = viewModel.dailyStats.value
+            val targetMin = viewModel.currentTargetMin.value
+            val targetCount = viewModel.currentTargetCount.value
+
+            var totalUsedSec = 0L
+            var currentCount = 0L
+            stats?.appUsage?.values?.forEach {
+                totalUsedSec += it.runTimeSec
+                currentCount += it.shortformCount
+            }
+
+            val maxAllowedSec = (targetMin * 60) * 0.6
+            val maxAllowedCount = targetCount * 0.6
+
+            val isTimeLocked = targetMin > 0 && totalUsedSec > maxAllowedSec
+            val isCountLocked = targetCount > 0 && currentCount > maxAllowedCount
+
+            if (isTimeLocked || isCountLocked) {
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    "🔒 이미 오늘 목표의 60% 이상을 사용했습니다.\n오늘은 더 이상 목표를 수정할 수 없습니다!",
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+            } else {
+                val dialog = TargetSettingDialog()
+                dialog.show(childFragmentManager, "TargetSettingDialog")
+            }
         }
 
         observeDashboardData()
@@ -60,20 +84,19 @@ class HomeFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
 
-                // 도파민 로그 관찰 (파이 차트 그리기)
+                // 도파민 로그 관찰 (파이 차트)
                 launch {
                     viewModel.dopamineLogs.collect { logs ->
                         if (logs.isNotEmpty()) {
-                            binding.pieChartCategory.post {
-                                initPieChart(logs)
-                            }
+                            binding.pieChartCategory.post { initPieChart(logs) }
                         }
                     }
                 }
 
-                // daily_statistics 데이터 감시/관찰 (가로 막대 차트)
+                // 통계 데이터가 바뀔 때마다 텍스트, 차트 업데이트
                 launch {
                     viewModel.dailyStats.collect { stats ->
+                        updateSummaryUI() // 텍스트 갱신 (초 단위까지)
                         if (stats != null && stats.appUsage.isNotEmpty()) {
                             binding.barChartAppRanking.post {
                                 initHorizontalBarChart(stats.appUsage)
@@ -81,7 +104,49 @@ class HomeFragment : Fragment() {
                         }
                     }
                 }
+
+                // 설정한 목표시간이 바뀔 때마다 텍스트 업데이트
+                launch {
+                    viewModel.currentTargetMin.collect {
+                        updateSummaryUI()
+                    }
+                }
             }
+        }
+    }
+
+    // 초(second) 단위로 UI 텍스트 설정
+    private fun updateSummaryUI() {
+        val stats = viewModel.dailyStats.value
+        val targetMin = viewModel.currentTargetMin.value
+        val targetCount = viewModel.currentTargetCount.value
+
+        var totalUsedSec = 0L
+        var currentCount = 0L
+        stats?.appUsage?.values?.forEach {
+            totalUsedSec += it.runTimeSec
+            currentCount += it.shortformCount
+        }
+
+        // --- 시간 프로그레스 바 세팅 ---
+        val usedMin = totalUsedSec / 60
+        if (targetMin == 0) { // 0이면 무제한 모드
+            binding.tvTimeStatus.text = "${usedMin}분 / 무제한"
+            binding.pbTime.progress = 0
+        } else {
+            binding.tvTimeStatus.text = "${usedMin}분 / ${targetMin}분"
+            val timePercent = ((totalUsedSec.toFloat() / (targetMin * 60)) * 100).toInt()
+            binding.pbTime.progress = minOf(timePercent, 100) // 최대 100%까지만 차오름
+        }
+
+        // 횟수 프로그레스 바 세팅
+        if (targetCount == 0) { // 0이면 무제한 모드
+            binding.tvCountStatus.text = "${currentCount}회 / 무제한"
+            binding.pbCount.progress = 0
+        } else {
+            binding.tvCountStatus.text = "${currentCount}회 / ${targetCount}회"
+            val countPercent = ((currentCount.toFloat() / targetCount) * 100).toInt()
+            binding.pbCount.progress = minOf(countPercent, 100)
         }
     }
 
@@ -135,50 +200,56 @@ class HomeFragment : Fragment() {
 
     // 앱 사용 시간 랭킹 렌더링 (Horizontal Bar)
     private fun initHorizontalBarChart(appUsage: Map<String, AppUsage>) {
-        // 사용 시간이 많은 순서대로 내림차순 정렬 (runTimeSec)
         val sortedUsage = appUsage.entries.sortedByDescending { it.value.runTimeSec }
-
         val entries = ArrayList<BarEntry>()
-        val labels = ArrayList<String>() // Y축에 들어갈 앱 이름들 (가로 차트라 세로축에 넣음)
+        val labels = ArrayList<String>()
 
-        // 데이터를 막대그래프 규격으로 변환
         sortedUsage.forEachIndexed { index, entry ->
             val platformName = entry.key
-            // 초를 분 단위로 변환 (시각적 보완)
             val minutesUsed = entry.value.runTimeSec / 60f
-
-            // X좌표는 인덱스, Y좌표는 분(min)
             entries.add(BarEntry(index.toFloat(), minutesUsed))
-            labels.add(platformName.replaceFirstChar { it.uppercase() }) // youtube -> Youtube (대문자)
+            labels.add(platformName.replaceFirstChar { it.uppercase() })
         }
 
-        // 막대그래프 디자인
-        val dataSet = BarDataSet(entries, "사용 시간 (분)")
+        val dataSet = BarDataSet(entries, "사용 시간")
         dataSet.colors = ColorTemplate.PASTEL_COLORS.toList()
         dataSet.valueTextSize = 12f
+
+        // 0.833과 같은 소수 표현을 초 / 분 단위로 표ㅕ현
+        dataSet.valueFormatter = object : com.github.mikephil.charting.formatter.ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                val totalSeconds = (value * 60).toInt()
+                val min = totalSeconds / 60
+                val sec = totalSeconds % 60
+                return if (min > 0) "${min}분 ${sec}초" else "${sec}초"
+            }
+        }
 
         val data = BarData(dataSet)
         binding.barChartAppRanking.data = data
 
-        // X축(앱 이름)을 숫자가 아닌 실제 앱 이름(labels)으로 바꿔주기
         val xAxis = binding.barChartAppRanking.xAxis
         xAxis.position = XAxis.XAxisPosition.BOTTOM
         xAxis.valueFormatter = IndexAxisValueFormatter(labels)
-        xAxis.setDrawGridLines(false) // 배경 격자무늬 제거
-        xAxis.granularity = 1f // 레이블 겹치지않게
+        xAxis.setDrawGridLines(false)
+        xAxis.granularity = 1f
 
-        binding.barChartAppRanking.isDoubleTapToZoomEnabled = false // 더블 클릭 확대 방지용
-        binding.barChartAppRanking.setScaleEnabled(false) // 두 손가락으로..? 줌인 방지용
+        // 하단 축(시간 축)도 소수점 없애고 정수(분)로만 표시
+        val yAxis = binding.barChartAppRanking.axisLeft
+        yAxis.granularity = 1f // 1분 단위로만 끊기
+        yAxis.valueFormatter = object : com.github.mikephil.charting.formatter.ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                return "${value.toInt()}분"
+            }
+        }
 
-        // 기타 차트 디자인 정리
+        binding.barChartAppRanking.isDoubleTapToZoomEnabled = false
+        binding.barChartAppRanking.setScaleEnabled(false)
         binding.barChartAppRanking.description.isEnabled = false
-        binding.barChartAppRanking.axisRight.isEnabled = false // 오른쪽 숫자 제거
-
-        binding.barChartAppRanking.extraLeftOffset = 30f // 왼쪽 여백
-
-        binding.barChartAppRanking.animateY(1000) // 애니메이션 효과
+        binding.barChartAppRanking.axisRight.isEnabled = false
+        binding.barChartAppRanking.extraLeftOffset = 30f
+        binding.barChartAppRanking.animateY(1000)
         binding.barChartAppRanking.invalidate()
-
     }
 
     // 화면 꺼질 때 메모리 누수 방지용

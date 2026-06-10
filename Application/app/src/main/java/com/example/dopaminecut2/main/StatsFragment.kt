@@ -80,6 +80,7 @@ class StatsFragment : Fragment() {
     }
 
     // 달성일 확인 캘린더 아이콘 표기 (Streak)
+    // stats 사용 예정
     private fun initStreakUI(stats: DailyStatistics) {
         // ※ 참고 : 기본 CalendarView는 UI 커스텀이 제한적
         // 현재 날짜를 선택해주고, 점수에 따른 알림을 세팅.
@@ -108,15 +109,31 @@ class StatsFragment : Fragment() {
         dataSet.colors = ColorTemplate.COLORFUL_COLORS.toList()
         dataSet.valueTextSize = 12f
 
+        // 차트 위 숫자 소수점 제거
+        dataSet.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                return "${value.toInt()}회"
+            }
+        }
+
         binding.barChartWeekly.data = BarData(dataSet)
 
-        // X축 세팅
         val xAxis = binding.barChartWeekly.xAxis
         xAxis.position = XAxis.XAxisPosition.BOTTOM
         xAxis.valueFormatter = IndexAxisValueFormatter(labels)
         xAxis.granularity = 1f
         xAxis.setDrawGridLines(false)
 
+        // 왼쪽 Y축 소수점 제거 및 1단위로 끊음
+        val yAxisLeft = binding.barChartWeekly.axisLeft
+        yAxisLeft.granularity = 1f
+        yAxisLeft.axisMinimum = 0f
+        yAxisLeft.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                return "${value.toInt()}회"
+            }
+        }
+        binding.barChartWeekly.axisRight.isEnabled = false
 
         binding.barChartWeekly.isDoubleTapToZoomEnabled = false
         binding.barChartWeekly.setScaleEnabled(false)

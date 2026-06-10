@@ -49,13 +49,14 @@ class FirebaseDataSource(
 
     // 차단 카테고리/통합 목표 설정 업데이트
     suspend fun updateUserTargetSettings(userId: String, timeLimit: Int, countLimit: Int, tags: List<String>) {
-        val updates = mapOf(
+        val updates = hashMapOf<String, Any>(
             "target_time_min" to timeLimit,
             "target_shortform_count" to countLimit,
             "restrictions" to tags
         )
+        // .update() 대신 .set(SetOptions.merge())를 쓰면 에러 없이 완벽히 저장됩니다!
         firestore.collection("users").document(userId)
-            .update(updates)
+            .set(updates, SetOptions.merge())
             .await()
     }
 
@@ -100,22 +101,26 @@ class FirebaseDataSource(
     // 앱 사용량 실시간 누적 (FieldValue.increment 활용)
     suspend fun incrementAppUsageData(
         userId: String,
-        date: String,         // 예: "20260523"
-        platform: String,     // 예: "youtube"
+        date: String,
+        platform: String,
         runTimeSec: Long,
         shortformCount: Long
     ) {
         val documentId = "${userId}_${date}"
 
-        // 업데이트할 데이터를 Map 형태로 구성 (app_usage.youtube.run_time_sec 형식)
         val updates = hashMapOf<String, Any>(
             "user_id" to userId,
             "date" to date,
-            "app_usage.$platform.run_time_sec" to FieldValue.increment(runTimeSec),
-            "app_usage.$platform.shortform_count" to FieldValue.increment(shortformCount)
+            "app_usage" to hashMapOf(
+                platform to hashMapOf(
+                    "run_time_sec" to FieldValue.increment(runTimeSec),
+                    "shortform_time_sec" to FieldValue.increment(runTimeSec),
+                    "shortform_count" to FieldValue.increment(shortformCount)
+                )
+            )
         )
 
-        // SetOptions.merge()를 쓰면 해당 날짜의 문서가 없으면 새로 만들고, 있으면 숫자만 더해줍니다.
+        // SetOptions.merge()는 기존 데이터를 날리지 않고 깊은 곳(Deep)까지 안전하게 병합해 줍니다.
         firestore.collection("daily_statistics").document(documentId)
             .set(updates, SetOptions.merge())
             .await()
