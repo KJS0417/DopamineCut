@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DopamineCut Community</title>
-  /*현재 상태 (테스트용): userScore: mockScore (랜덤 점수 저장)
-   최종 연동 시 (실제 반영): userScore: todayCalculatedDopamineScore (로그인한 유저가 오늘 획득한 진짜 점수 변수 대입)*/
   <style>
     * {
       box-sizing: border-box;
@@ -119,6 +117,21 @@
       background: var(--primary-dark);
     }
 
+    /* 확성기 전용 상단 버튼 스타일 */
+    .megaphone-btn {
+      border: 0;
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      color: white;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-weight: 800;
+      box-shadow: 0 10px 20px rgba(239, 68, 68, 0.24);
+    }
+
+    .megaphone-btn:hover {
+      background: linear-gradient(135deg, #d97706, #dc2626);
+    }
+
     .hero {
       background:
         radial-gradient(circle at 15% 20%, rgba(91, 92, 246, 0.22), transparent 28%),
@@ -176,8 +189,31 @@
     }
 
     .hero-card h2 {
-      margin: 0 0 12px;
+      margin: 0;
       font-size: 19px;
+    }
+
+    .popular-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .popular-label {
+      flex: 0 0 auto;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .popular-list {
+      display: grid;
+      gap: 2px;
     }
 
     .rank-item {
@@ -186,6 +222,19 @@
       align-items: center;
       padding: 12px 0;
       border-top: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .rank-item.clickable {
+      cursor: pointer;
+      border-radius: 16px;
+      padding: 12px 10px;
+      margin: 0 -10px;
+      transition: background 0.18s ease, transform 0.18s ease;
+    }
+
+    .rank-item.clickable:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(3px);
     }
 
     .rank-number {
@@ -258,6 +307,13 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
+    }
+
+    /* 확성기 전용 카드 컴포넌트 하이라이트 배경 */
+    .post-card.ad-card {
+      border: 2px solid #f59e0b;
+      background: #fffbeb;
+      box-shadow: 0 16px 40px rgba(245, 158, 11, 0.12);
     }
 
     .category-bar {
@@ -339,6 +395,21 @@
       color: #7c3aed;
     }
 
+    /* 광고 전용 인덱스 라벨 구조 */
+    .badge.ad {
+      background: #feebc8;
+      color: #c05621;
+      border: 1px solid #fbd38d;
+    }
+
+    /* 광고 잔여 수명 실시간 측정용 뱃지 스타일 */
+    .badge.timer {
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+      font-family: monospace;
+    }
+
     .post-time {
       color: var(--sub);
       font-size: 13px;
@@ -347,7 +418,7 @@
 
     .post-title {
       margin: 0 0 9px;
-      font-size: 21px; /* JS에서 동적 제어하므로 기본 크기로 유지 */
+      font-size: 21px;
       letter-spacing: -0.4px;
     }
 
@@ -386,7 +457,6 @@
       flex: 0 0 auto;
     }
 
-    /* 추가: 도파민 전용 등급 뱃지 스타일 */
     .tier-badge {
       font-size: 11px;
       padding: 3px 8px;
@@ -737,7 +807,7 @@
         width: auto;
       }
 
-      .primary-btn {
+      .primary-btn, .megaphone-btn {
         white-space: nowrap;
       }
 
@@ -776,7 +846,8 @@
           placeholder="게시글 검색"
           oninput="renderPosts()"
         />
-        <button class="primary-btn" onclick="openWriteModal()">글쓰기</button>
+        <button class="megaphone-btn" onclick="openWriteModal(true)">📢 확성기 사용 (<span id="btnBagCount">3</span>)</button>
+        <button class="primary-btn" onclick="openWriteModal(false)">글쓰기</button>
       </div>
     </div>
   </header>
@@ -797,26 +868,17 @@
       </div>
 
       <aside class="hero-card">
-        <h2>🔥 지금 많이 보는 글</h2>
-        <div class="rank-item">
-          <span class="rank-number">1</span>
-          <div>
-            <strong>자기 전 숏폼 차단 루틴 공유</strong>
-            <span>좋아요 41 · 댓글 12</span>
-          </div>
+        <div class="popular-head">
+          <h2>🔥 지금 많이 보는 글</h2>
+          <span class="popular-label">실시간 인기</span>
         </div>
-        <div class="rank-item">
-          <span class="rank-number">2</span>
-          <div>
-            <strong>오늘 10분만 사용 성공했습니다</strong>
-            <span>좋아요 29 · 댓글 8</span>
-          </div>
-        </div>
-        <div class="rank-item">
-          <span class="rank-number">3</span>
-          <div>
-            <strong>앱 삭제보다 효과 있었던 방법</strong>
-            <span>좋아요 24 · 댓글 6</span>
+        <div id="popularPosts" class="popular-list">
+          <div class="rank-item empty-rank">
+            <span class="rank-number">-</span>
+            <div>
+              <strong>아직 인기 글이 없습니다</strong>
+              <span>게시글이 등록되면 자동으로 표시됩니다</span>
+            </div>
           </div>
         </div>
       </aside>
@@ -897,7 +959,7 @@
           <h3>운영 안내</h3>
           <p>
             DopamineCut 커뮤니티는 숏폼, SNS, 게임 등 과도한 디지털 자극을 줄이고 싶은 사용자를 위한 공간입니다.
-            게시글과 댓글은 서버에 저장되며, 운영 정책에 맞지 않는 글은 신고 검토 후 제한될 수 있습니다.
+            게시글 and 댓글은 서버에 저장되며, 운영 정책에 맞지 않는 글은 신고 검토 후 제한될 수 있습니다.
             중요한 문의나 오류 제보는 커뮤니티 내 신고 기능을 이용해 주세요.
           </p>
         </section>
@@ -912,7 +974,7 @@
   <div id="writeModal" class="modal-backdrop" onclick="closeByBackdrop(event)">
     <div class="modal">
       <div class="modal-head">
-        <h2>게시글 작성</h2>
+        <h2 id="modalTitle">게시글 작성</h2>
         <button class="close-btn" onclick="closeWriteModal()">×</button>
       </div>
 
@@ -966,14 +1028,14 @@
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyBc41ylE5iQ4u0tB2cOZ-jvpaieSo2Kai0",
-    authDomain: "dopaminecut-community.firebaseapp.com",
-    databaseURL: "https://dopaminecut-community-default-rtdb.firebaseio.com",
-    projectId: "dopaminecut-community",
-    storageBucket: "dopaminecut-community.firebasestorage.app",
-    messagingSenderId: "440075672976",
-    appId: "1:440075672976:web:7df1783a1c60b4d262a715",
-    measurementId: "G-RJMDXP5NHH"
+    apiKey: "AIzaSyDn5zZX_POnedat9kCq1SgbLJaEi-YUlNM",
+    authDomain: "dopaminecut-d7a70.firebaseapp.com",
+    databaseURL: "https://dopaminecut-d7a70-default-rtdb.firebaseio.com",
+    projectId: "dopaminecut-d7a70",
+    storageBucket: "dopaminecut-d7a70.firebasestorage.app",
+    messagingSenderId: "556775554571",
+    appId: "1:556775554571:web:4ac8cdad444f5beb9c910e",
+    measurementId: "G-RDCD93X4KY"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -981,6 +1043,11 @@
 
   let currentCategory = "전체";
   let posts = [];
+  let isMegaphoneMode = false;
+  
+  // 테스트용 확성기 인벤토리 개수 제어 변수 (0으로 변경 시 구매하지 않음 안내 노출됨)
+  let userMegaphoneCount = 3;
+  let timerIntervalId = null;
 
   const postsRef = ref(db, "community_posts");
 
@@ -1003,8 +1070,25 @@
       });
     });
 
-    // 변경사항: 당일 도파민 점수(userScore)가 높은 순으로 최상단 정렬 (점수 동일 시 최신순)
+    // 요구사항 반영 복합 정렬 루프 알고리즘
     posts.sort((a, b) => {
+      const now = Date.now();
+      const durationMs = 24 * 60 * 60 * 1000; // 24시간 제한 기준치
+
+      const isAdA = a.isMegaphone && (now - (a.createdAt || 0) < durationMs) ? 1 : 0;
+      const isAdB = b.isMegaphone && (now - (b.createdAt || 0) < durationMs) ? 1 : 0;
+
+      // 1순위: 만료되지 않은 확성기 광고 글을 최상단 우선 배치 (일반 글은 항상 광고글 하단 정렬)
+      if (isAdB !== isAdA) {
+        return isAdB - isAdA;
+      }
+
+      // 2순위: 둘 다 살아있는 광고 글인 경우, 가장 최근에 사용(생성)된 확성기 글이 상단 점유
+      if (isAdA === 1 && isAdB === 1) {
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      }
+
+      // 3순위: 일반 구역(혹은 기간 만료된 광고글)인 경우 당일 도파민 점수가 높은 유저 순 배치
       const scoreA = a.userScore || 0;
       const scoreB = b.userScore || 0;
       if (scoreB !== scoreA) {
@@ -1014,6 +1098,9 @@
     });
 
     renderPosts();
+    renderPopularPosts();
+    updateButtonCounter();
+    startLiveTimers();
   });
 
   function getBadgeClass(category) {
@@ -1036,19 +1123,30 @@
     return icons[category] || "📌";
   }
 
-  // 추가: 도파민 점수대별 등급 이름, 이모티콘 및 텍스트 크기 매핑 함수
-  function getUserTierStyles(score) {
+  // 등급 및 확성기 확장형 폰트/스타일 산출 연산 구조
+  function getUserTierStyles(score, isMegaphoneActive = false) {
+    // 요구사항 반영: 확성기를 썼고 유효 기간(24시간 내) 중이라면 점수와 무관하게 무조건 가장 크게 렌더링
+    if (isMegaphoneActive) {
+      return {
+        emoji: "📢",
+        titleFontSize: "32px",
+        contentFontSize: "18px",
+        tierName: "확성기 광고",
+        badgeStyle: "background: #fff3cd; color: #856404; border: 1px solid #ffeeba;"
+      };
+    }
+
     if (score >= 80) {
       return {
-        emoji: "👑", // 높은 등급 (왕)
-        titleFontSize: "26px", // 높은 등급은 텍스트 크기를 크게 조정
+        emoji: "👑",
+        titleFontSize: "26px",
         contentFontSize: "16px",
         tierName: "도파민 국왕",
         badgeStyle: "background: #fef3c7; color: #d97706; border: 1px solid #fcd34d;"
       };
     } else if (score >= 50) {
       return {
-        emoji: "⚔️", // 중간 이상 (기사)
+        emoji: "⚔️",
         titleFontSize: "21px",
         contentFontSize: "15px",
         tierName: "절제력 기사",
@@ -1056,7 +1154,7 @@
       };
     } else if (score >= 25) {
       return {
-        emoji: "🏃", // 보통 (평민)
+        emoji: "🏃",
         titleFontSize: "18px",
         contentFontSize: "14px",
         tierName: "평범한 평민",
@@ -1064,8 +1162,8 @@
       };
     } else {
       return {
-        emoji: "⛓️", // 낮은 등급 (자극의 노예)
-        titleFontSize: "15px", // 점수가 낮으면 상대적으로 텍스트 크기가 작게 출력됨
+        emoji: "⛓️",
+        titleFontSize: "15px",
         contentFontSize: "13px",
         tierName: "도파민 노예",
         badgeStyle: "background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;"
@@ -1102,24 +1200,38 @@
       return;
     }
 
+    const now = Date.now();
+    const durationMs = 24 * 60 * 60 * 1000;
+
     filtered.forEach(post => {
       const card = document.createElement("article");
-      card.className = "panel post-card";
+      
+      const isAdActive = post.isMegaphone && (now - (post.createdAt || 0) < durationMs);
+      card.className = isAdActive ? "panel post-card ad-card" : "panel post-card";
 
-      // 게시글의 도파민 점수값 추출 (없을 시 기본값 0)
       const currentScore = post.userScore || 0;
-      const tier = getUserTierStyles(currentScore);
+      const tier = getUserTierStyles(currentScore, isAdActive);
 
       card.innerHTML = `
         <div class="post-head">
-          <span class="badge ${getBadgeClass(post.category)}">
-            ${getCategoryIcon(post.category)} ${escapeHtml(post.category)}
-          </span>
+          <div>
+            <span class="badge ${getBadgeClass(post.category)}">
+              ${getCategoryIcon(post.category)} ${escapeHtml(post.category)}
+            </span>
+            ${isAdActive ? `
+              <span class="badge ad">📢 광고</span>
+              <span class="badge timer" id="timer-${post.id}" data-expire="${post.createdAt + durationMs}">⏳ 계산 중...</span>
+            ` : ''}
+          </div>
           <span class="post-time">${formatDate(post.createdAt)}</span>
         </div>
 
-        <h2 class="post-title" style="font-size: ${tier.titleFontSize}; font-weight: 800;">${escapeHtml(post.title)}</h2>
-        <p class="post-content" style="font-size: ${tier.contentFontSize};">${escapeHtml(post.content)}</p>
+        <h2 class="post-title" style="font-size: ${tier.titleFontSize}; font-weight: 800;">
+          ${escapeHtml(post.title)}
+        </h2>
+        <p class="post-content" style="font-size: ${tier.contentFontSize};">
+          ${escapeHtml(post.content)}
+        </p>
 
         <div class="post-foot">
           <div class="author">
@@ -1127,7 +1239,7 @@
               ${tier.emoji}
             </span>
             <span style="font-weight: 700;">${escapeHtml(post.author || "익명")}</span>
-            <span class="tier-badge" style="${tier.badgeStyle}">${tier.tierName} (${currentScore}점)</span>
+            <span class="tier-badge" style="${tier.badgeStyle}">${tier.tierName} ${!isAdActive ? `(${currentScore}점)` : ''}</span>
           </div>
 
           <div class="actions">
@@ -1158,6 +1270,102 @@
     updateStats();
   }
 
+  // 실시간 광고 제한 시간 타이머 스레드 가동 함수
+  function startLiveTimers() {
+    if (timerIntervalId) clearInterval(timerIntervalId);
+
+    timerIntervalId = setInterval(() => {
+      const timerElements = document.querySelectorAll("[id^='timer-']");
+      if (timerElements.length === 0) return;
+
+      const now = Date.now();
+      let refreshNeeded = false;
+
+      timerElements.forEach(el => {
+        const expireTime = parseInt(el.dataset.expire, 10);
+        const remainMs = expireTime - now;
+
+        if (remainMs <= 0) {
+          el.textContent = "⌛ 광고 만료됨";
+          refreshNeeded = true; 
+        } else {
+          const totalSecs = Math.floor(remainMs / 1000);
+          const secs = totalSecs % 60;
+          const totalMins = Math.floor(totalSecs / 60);
+          const mins = totalMins % 60;
+          const hours = Math.floor(totalMins / 60);
+
+          el.textContent = `⏳ ${hours}시간 ${mins}분 ${secs}초 남음`;
+        }
+      });
+
+      if (refreshNeeded) {
+        clearInterval(timerIntervalId);
+        renderPosts();
+      }
+    }, 1000);
+  }
+
+  function renderPopularPosts() {
+    const popularPosts = document.getElementById("popularPosts");
+    if (!popularPosts) return;
+
+    const rankedPosts = [...posts]
+      .sort((a, b) => {
+        const scoreA = (a.likes || 0) + ((a.comments || []).length * 2);
+        const scoreB = (b.likes || 0) + ((b.comments || []).length * 2);
+
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      })
+      .slice(0, 3);
+
+    if (rankedPosts.length === 0) {
+      popularPosts.innerHTML = `
+        <div class="rank-item empty-rank">
+          <span class="rank-number">-</span>
+          <div>
+            <strong>아직 인기 글이 없습니다</strong>
+            <span>게시글이 등록되면 자동으로 표시됩니다</span>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    popularPosts.innerHTML = rankedPosts.map((post, index) => `
+      <div class="rank-item clickable" onclick="focusPost('${post.id}')">
+        <span class="rank-number">${index + 1}</span>
+        <div>
+          <strong>${escapeHtml(post.title)}</strong>
+          <span>${escapeHtml(post.category)} · 좋아요 ${post.likes || 0} · 댓글 ${(post.comments || []).length}</span>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function focusPost(id) {
+    const post = posts.find((item) => item.id === id);
+    if (!post) return;
+
+    currentCategory = "전체";
+    document.getElementById("searchInput").value = post.title || "";
+
+    document.querySelectorAll(".category-btn").forEach(button => {
+      button.classList.toggle("active", button.dataset.category === "전체");
+    });
+
+    renderPosts();
+
+    const container = document.querySelector(".container");
+    if (container) {
+      window.scrollTo({
+        top: container.offsetTop - 80,
+        behavior: "smooth"
+      });
+    }
+  }
+
   function updateStats() {
     document.getElementById("totalPosts").textContent = posts.length;
 
@@ -1169,6 +1377,13 @@
 
     document.getElementById("totalLikes").textContent =
       posts.reduce((sum, post) => sum + (post.likes || 0), 0);
+  }
+
+  function updateButtonCounter() {
+    const counterSpan = document.getElementById("btnBagCount");
+    if (counterSpan) {
+      counterSpan.textContent = userMegaphoneCount;
+    }
   }
 
   function setCategory(category) {
@@ -1205,7 +1420,21 @@
     });
   }
 
-  function openWriteModal() {
+  // 매개변수를 활용하여 확성기 모드 및 일반 모드 스위칭
+  function openWriteModal(isMegaphone = false) {
+    if (isMegaphone) {
+      // 요구사항 반영: 확성기가 없을 때 모달 진입을 차단하고 경고 시스템 호출
+      if (userMegaphoneCount <= 0) {
+        showToast("❌ 구매하신 확성기 아이템이 없습니다.");
+        return; 
+      }
+      isMegaphoneMode = true;
+      document.getElementById("modalTitle").innerHTML = "📢 확성기 게시글 작성 (24시간 상단 고정 광고)";
+    } else {
+      isMegaphoneMode = false;
+      document.getElementById("modalTitle").innerHTML = "게시글 작성";
+    }
+
     document.getElementById("writeModal").classList.add("active");
 
     setTimeout(() => {
@@ -1236,9 +1465,8 @@
 
     try {
       const newPostRef = push(ref(db, "community_posts"));
-
-      // 임시 기능: 글 쓸 때 UI 테스트를 위해 0~100 사이의 가상 도파민 점수를 랜덤으로 부여해 DB에 저장합니다.
-      // 프로젝트 연동 시 해당 유저 테이블의 실시간 점수를 세팅해주시면 완벽히 맞물립니다.
+      
+      // 테스트용 가변 유저 도파민 스코어 난수 추출 (실 배포 환경 연동 시 변수 교체 타겟)
       const mockScore = Math.floor(Math.random() * 101);
 
       await set(newPostRef, {
@@ -1248,16 +1476,23 @@
         author,
         createdAt: Date.now(),
         likes: 0,
-        userScore: mockScore 
+        userScore: mockScore,
+        isMegaphone: isMegaphoneMode // 스키마 필드 확장 적용
       });
 
-      document.getElementById("authorInput").value = "";
+      if (isMegaphoneMode) {
+        userMegaphoneCount = Math.max(0, userMegaphoneCount - 1);
+        updateButtonCounter();
+        showToast("📢 확성기를 소모하여 24시간 상단 고정 광고 글을 등록했습니다!");
+      } else {
+        showToast(`게시글이 등록되었습니다. (나의 도파민 등급 점수: ${mockScore}점)`);
+      }
+
       document.getElementById("titleInput").value = "";
       document.getElementById("contentInput").value = "";
 
       closeWriteModal();
       setCategory("전체");
-      showToast(`게시글이 등록되었습니다. (부여된 점수: ${mockScore}점)`);
     } catch (error) {
       console.error(error);
       showToast("게시글 등록에 실패했습니다.");
@@ -1368,6 +1603,7 @@
   window.setCategory = setCategory;
   window.resetView = resetView;
   window.renderPosts = renderPosts;
+  window.focusPost = focusPost;
 </script>
 </body>
 </html>
