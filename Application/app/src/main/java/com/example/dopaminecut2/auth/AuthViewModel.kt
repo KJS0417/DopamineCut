@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dopaminecut2.data.model.Inventory
 import com.example.dopaminecut2.data.model.User
+import com.example.dopaminecut2.data.model.UserGoal
+import com.example.dopaminecut2.data.model.UserProfile
+import com.example.dopaminecut2.data.model.UserToday
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -83,11 +86,22 @@ class AuthViewModel : ViewModel() {
                 // 2. 기획된 명세서에 맞추어 유저 초기값(DB 객체) 세팅
                 val newUser = User(
                     userId = uid,
-                    email = email,
-                    nickname = nickname,
+                    schemaVersion = 2,
                     createdAt = Date(),
-                    restrictions = emptyList(), // 차단 카테고리 초기값 (빈 배열)
-                    inventory = Inventory(poke = 0L, megaphone = 0L) // 아이템 초기값 0
+                    updatedAt = Date(),
+                    profile = UserProfile(
+                        nickname = nickname
+                    ),
+                    goal = UserGoal(
+                        appTimeLimitMin = 120,
+                        shortformLimitCount = 15,
+                        restrictedCategories = emptyList()
+                    ),
+                    today = UserToday(), // 오늘 데이터 초기화
+                    weeklyScore = 0L,
+                    weeklyFocusTimeSec = 0L,
+                    inventory = Inventory(poke = 0L, megaphone = 0L, shield = 0L),
+                    currentStreakDays = 0
                 )
 
                 // 3. Firestore 'users' 컬렉션에 초기 데이터 적재

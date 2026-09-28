@@ -58,7 +58,6 @@ class StatsFragment : Fragment() {
                             binding.root.post {
                                 initStreakUI(stats)
                                 if(stats.appUsage.isNotEmpty()) {
-                                    initBarChart(stats)
                                     initDoughnutChart(stats)
                                 }
                             }
@@ -72,6 +71,16 @@ class StatsFragment : Fragment() {
                         if (logs.isNotEmpty()) {
                             binding.root.post {
                                 initLineChart(logs)
+                            }
+                        }
+                    }
+                }
+
+                launch {
+                    viewModel.weeklyStats.collect { weeklyList ->
+                        if (weeklyList.isNotEmpty()) {
+                            binding.root.post {
+                                initBarChart(weeklyList) // 7일치 리스트 넘기기
                             }
                         }
                     }
@@ -95,22 +104,31 @@ class StatsFragment : Fragment() {
     }
 
     // 주간 숏폼 시청 추이 렌더링 (Bar Chart)
-    private fun initBarChart(stats: DailyStatistics) {
+    private fun initBarChart(weeklyStats: List<DailyStatistics>) {
         val entries = ArrayList<BarEntry>()
         val labels = ArrayList<String>()
 
-        var index = 0f
-        for ((platform, usage) in stats.appUsage) {
-            entries.add(BarEntry(index, usage.shortformCount.toFloat()))
-            labels.add(platform.replaceFirstChar { it.uppercase() })
-            index += 1f
+        // 날짜 오름차순(과거->최신)으로 정렬
+        val sortedStats = weeklyStats.sortedBy { it.date }
+
+        sortedStats.forEachIndexed { index, dailyStat ->
+            // 하루 동안 모든 앱에서 본 숏폼 횟수 총합 계산
+            var totalShortformCountForDay = 0L
+            dailyStat.appUsage.values.forEach { usage ->
+                totalShortformCountForDay += usage.shortformCount
+            }
+
+            entries.add(BarEntry(index.toFloat(), totalShortformCountForDay.toFloat()))
+
+            // 날짜 포맷 (예: "20260910" -> "9/10")
+            val month = dailyStat.date.substring(4, 6).toInt()
+            val day = dailyStat.date.substring(6, 8).toInt()
+            labels.add("${month}/${day}")
         }
 
-        val dataSet = BarDataSet(entries, "숏폼 시청 횟수(회)")
+        val dataSet = BarDataSet(entries, "일일 숏폼 시청 횟수(회)")
         dataSet.colors = ColorTemplate.COLORFUL_COLORS.toList()
         dataSet.valueTextSize = 12f
-
-        // 차트 위 숫자 소수점 제거
         dataSet.valueFormatter = object : ValueFormatter() {
             override fun getFormattedValue(value: Float): String {
                 return "${value.toInt()}회"
@@ -125,7 +143,6 @@ class StatsFragment : Fragment() {
         xAxis.granularity = 1f
         xAxis.setDrawGridLines(false)
 
-        // 왼쪽 Y축 소수점 제거 및 1단위로 끊음
         val yAxisLeft = binding.barChartWeekly.axisLeft
         yAxisLeft.granularity = 1f
         yAxisLeft.axisMinimum = 0f
@@ -134,8 +151,8 @@ class StatsFragment : Fragment() {
                 return "${value.toInt()}회"
             }
         }
-        binding.barChartWeekly.axisRight.isEnabled = false
 
+        binding.barChartWeekly.axisRight.isEnabled = false
         binding.barChartWeekly.isDoubleTapToZoomEnabled = false
         binding.barChartWeekly.setScaleEnabled(false)
         binding.barChartWeekly.description.isEnabled = false

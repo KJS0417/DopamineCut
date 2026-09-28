@@ -25,6 +25,7 @@
             android:text="내 도파민 방어 기록 (연속 달성)"
             android:textStyle="bold"
             android:layout_marginBottom="8dp"/>
+
         <CalendarView
             android:id="@+id/calendarStreak"
             android:layout_width="match_parent"

@@ -44,10 +44,11 @@ interface UserRepositoryInterface {
         userId: String,
         date: String,
         platform: String,
-        runTimeSec: Long,
-        shortformCount: Long
+        durationSec: Long,
+        isShortform: Boolean
     ): Result<Unit>
 
     fun getDailyStatisticsFlow(userId: String, date: String): Flow<DailyStatistics?>
     fun getDopamineLogsFlow(userId: String): Flow<List<DopamineLog>>
+    fun getWeeklyStatisticsFlow(userId: String): Flow<List<DailyStatistics>>
 }

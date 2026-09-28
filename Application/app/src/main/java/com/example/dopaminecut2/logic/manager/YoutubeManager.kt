@@ -39,28 +39,6 @@ class YoutubeManager : BaseAppManager() {
     }
 
     override fun getVideoIdentifier(rootNode: AccessibilityNodeInfo?): String? {
-        if (rootNode == null) return null
-
-        val identifierText = findIdentifierText(rootNode)
-            ?.trim()
-            ?.takeIf { it.isNotBlank() }
-
-        if (identifierText != null) {
-            Log.d(TAG, "[YouTube] 영상 식별자 감지: $identifierText")
-        }
-
-        return identifierText
-    }
-
-    private fun findIdentifierText(rootNode: AccessibilityNodeInfo?): String? {
         return findLongestText(rootNode)
-    }
-
-    fun getTrackingId(rootNode: AccessibilityNodeInfo?): String? {
-        return getVideoIdentifier(rootNode)
-    }
-
-    companion object {
-        private const val TAG = "YoutubeManager"
     }
 }

@@ -52,23 +52,31 @@ class UserRepository(
         userId: String,
         date: String,
         platform: String,
-        runTimeSec: Long,
-        shortformCount: Long
+        durationSec: Long,
+        isShortform: Boolean
     ): Result<Unit> {
         return try {
             // FieldValue.increment() 로직이 들어있는 remoteDataSource 함수 호출
-            remoteDataSource.incrementAppUsageData(userId, date, platform, runTimeSec, shortformCount)
+            remoteDataSource.incrementAppUsageData(userId, date, platform, durationSec, isShortform)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
+    // 일일 통계 실시간 스트림용 데이터 파이프
     override fun getDailyStatisticsFlow(userId: String, date: String): Flow<DailyStatistics?> {
         return remoteDataSource.getDailyStatisticsStream(userId, date)
     }
 
+    // 도파민 로그 실시간 스트림용 데이터 파이프
     override fun getDopamineLogsFlow(userId: String): Flow<List<DopamineLog>> {
         return remoteDataSource.getDopamineLogsStream(userId)
     }
+
+    // 7일차 통계 실시간 스트림용 데이터 파이프
+    override fun getWeeklyStatisticsFlow(userId: String): Flow<List<DailyStatistics>> {
+        return remoteDataSource.getWeeklyStatisticsStream(userId)
+    }
+
 }

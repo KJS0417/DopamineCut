@@ -54,6 +54,7 @@ class HomeFragment : Fragment() {
 
             var totalUsedSec = 0L
             var currentCount = 0L
+
             stats?.appUsage?.values?.forEach {
                 totalUsedSec += it.runTimeSec
                 currentCount += it.shortformCount
@@ -94,7 +95,7 @@ class HomeFragment : Fragment() {
                     }
                 }
 
-                // 통계 데이터가 바뀔 때마다 텍스트, 차트 업데이트
+                // 통계 데이터가 바뀔 때 텍스트 및 차트 업데이트
                 launch {
                     viewModel.dailyStats.collect { stats ->
                         updateSummaryUI() // 텍스트 갱신 (초 단위까지)
@@ -106,9 +107,16 @@ class HomeFragment : Fragment() {
                     }
                 }
 
-                // 설정한 목표시간이 바뀔 때마다 텍스트 업데이트
+                // 설정한 목표 시간 바뀔 때 텍스트 업데이트
                 launch {
                     viewModel.currentTargetMin.collect {
+                        updateSummaryUI()
+                    }
+                }
+
+                // 설정한 목표 횟수 바뀔 때 텍스트 업데이트
+                launch {
+                    viewModel.currentTargetCount.collect {
                         updateSummaryUI()
                     }
                 }

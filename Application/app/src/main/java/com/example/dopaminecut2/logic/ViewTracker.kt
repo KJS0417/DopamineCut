@@ -1,5 +1,7 @@
 package com.example.dopaminecut2.logic
 
+import android.util.Log
+
 class ViewTracker(
     private val viewThresholdMs: Long = 5000L, // 최소 5초는 봐야 인정됨
     // durationSec(실제 시청 초)를 콜백으로 같이 넘겨주기
@@ -20,6 +22,17 @@ class ViewTracker(
 
         // 보던 영상을 계속 보고 있으면 무시
         if (normalizedVideoId == currentVideoId) return
+
+
+
+        // ------ [Start] Test Code ------
+        // 글자가 달라지면, 다음 영상으로 넘긴 것.
+        if (currentVideoId != null) {
+            Log.d("TEST_LOG", "[Tracker] ● 영상 바뀜, 이전: $currentVideoId  --->  새값: $normalizedVideoId")
+        } else {
+            Log.d("TEST_LOG", "[Tracker] ○ 첫 숏폼 감지: $normalizedVideoId")
+        }
+        // ------ [End] Test Code ------
 
         // 다른 쇼츠로 넘겼으면, 방금까지 보던 쇼츠 시간 정산.
         stopTrackingAndReport()

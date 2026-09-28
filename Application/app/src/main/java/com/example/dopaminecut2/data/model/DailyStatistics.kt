@@ -5,27 +5,15 @@ import com.google.firebase.firestore.PropertyName
 
 data class DailyStatistics(
     @DocumentId
-    var documentId: String = "",                 // 문서 ID ({user_id}_{YYYYMMDD})
+    var documentId: String = "",
 
     @get:PropertyName("user_id")
     @set:PropertyName("user_id")
     var userId: String = "",
 
-    var date: String = "",                       // 집계 기준 날짜 (예: "20260523")
+    var date: String = "",
 
-    @get:PropertyName("daily_score")
-    @set:PropertyName("daily_score")
-    var dailyScore: Long = 0L,
-
-    @get:PropertyName("shortform_time")
-    @set:PropertyName("shortform_time")
-    var shortformTime: Long = 0L,
-
-    @get:PropertyName("is_settled")
-    @set:PropertyName("is_settled")
-    var isSettled: Boolean = false,
-
-    // 🟢 이름표 강력 접착 완료!
+    // 차트를 그리기 위한 앱별 사용량 데이터
     @get:PropertyName("app_usage")
     @set:PropertyName("app_usage")
     var appUsage: Map<String, AppUsage> = emptyMap()

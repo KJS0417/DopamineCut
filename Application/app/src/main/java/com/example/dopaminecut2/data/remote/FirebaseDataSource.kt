@@ -49,12 +49,18 @@ class FirebaseDataSource(
 
     // 차단 카테고리/통합 목표 설정 업데이트
     suspend fun updateUserTargetSettings(userId: String, timeLimit: Int, countLimit: Int, tags: List<String>) {
+
+        // goal Map에 데이터 세팅.
         val updates = hashMapOf<String, Any>(
-            "target_time_min" to timeLimit,
-            "target_shortform_count" to countLimit,
-            "restrictions" to tags
+            "updated_at" to java.util.Date(),
+            "goal" to hashMapOf(
+                "app_time_limit_min" to timeLimit,
+                "shortform_limit_count" to countLimit,
+                "restricted_categories" to tags
+            )
         )
-        // .update() 대신 .set(SetOptions.merge())를 쓰면 에러 없이 완벽히 저장됩니다!
+
+        // set과 merge로 데이터를 날리지 않고 덮어씌우기
         firestore.collection("users").document(userId)
             .set(updates, SetOptions.merge())
             .await()
@@ -103,26 +109,54 @@ class FirebaseDataSource(
         userId: String,
         date: String,
         platform: String,
-        runTimeSec: Long,
-        shortformCount: Long
+        durationSec: Long,
+        isShortform: Boolean
     ) {
         val documentId = "${userId}_${date}"
 
+        // 1. 기본적인 총 사용 시간(run_time_sec)은 무조건 더한다.
+        val platformUpdates = hashMapOf<String, Any>(
+            "run_time_sec" to com.google.firebase.firestore.FieldValue.increment(durationSec)
+        )
+
+        // 2. 숏폼을 본 거면, 숏폼 시간과 횟수도 같이 더한다.
+        if (isShortform) {
+            platformUpdates["shortform_time_sec"] = com.google.firebase.firestore.FieldValue.increment(durationSec)
+            platformUpdates["shortform_count"] = com.google.firebase.firestore.FieldValue.increment(1L)
+        }
+
+        // 3. 업데이트할 데이터를 Key-Value의 Map 형태 객체로 만든다.
         val updates = hashMapOf<String, Any>(
             "user_id" to userId,
             "date" to date,
             "app_usage" to hashMapOf(
-                platform to hashMapOf(
-                    "run_time_sec" to FieldValue.increment(runTimeSec),
-                    "shortform_time_sec" to FieldValue.increment(runTimeSec),
-                    "shortform_count" to FieldValue.increment(shortformCount)
-                )
+                platform.lowercase() to platformUpdates
             )
         )
 
-        // SetOptions.merge()는 기존 데이터를 날리지 않고 깊은 곳(Deep)까지 안전하게 병합해 줍니다.
+        // 4. 파이어베이스에 merge로 덮어쓴다. (안전용)
         firestore.collection("daily_statistics").document(documentId)
             .set(updates, SetOptions.merge())
             .await()
+    }
+
+    // 최근 7일치 통계 데이터 실시간 스트림
+    fun getWeeklyStatisticsStream(userId: String): Flow<List<DailyStatistics>> = callbackFlow {
+        val listener = firestore.collection("daily_statistics")
+            .whereEqualTo("user_id", userId)
+            .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(7) // 최근 7일치만 가져오기
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val statsList = snapshot?.documents?.mapNotNull {
+                    it.toObject(DailyStatistics::class.java)
+                } ?: emptyList()
+
+                trySend(statsList).isSuccess
+            }
+        awaitClose { listener.remove() }
     }
 }

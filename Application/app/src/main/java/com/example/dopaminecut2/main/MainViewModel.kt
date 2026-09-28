@@ -43,6 +43,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _dailyStats = MutableStateFlow<DailyStatistics?>(null)
     val dailyStats: StateFlow<DailyStatistics?> get() = _dailyStats
 
+    private val _weeklyStats = MutableStateFlow<List<DailyStatistics>>(emptyList())
+    val weeklyStats: StateFlow<List<DailyStatistics>> get() = _weeklyStats
+
     private val _dopamineLogs = MutableStateFlow<List<DopamineLog>>(emptyList())
     val dopamineLogs: StateFlow<List<DopamineLog>> get() = _dopamineLogs
 
@@ -64,20 +67,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val result = repository.getUserInfo(currentUserId)
             result.onSuccess { user ->
-                _userNickname.value = user.nickname
-                _currentTargetMin.value = user.targetTimeMin // 앱 켤 때 목표 가져오기
-                _currentTargetCount.value = user.targetCount
+                _userNickname.value = user.profile.nickname
+                _currentTargetMin.value = user.goal.appTimeLimitMin
+                _currentTargetCount.value = user.goal.shortformLimitCount
             }.onFailure { e ->
                 _userNickname.value = "에러: ${e.message}"
             }
 
             try { // DB 바뀌면 실시간 반영
                 repository.getUserInfoFlow(currentUserId).collect { user ->
-                    _userNickname.value = user.nickname
-                    _currentTargetMin.value = user.targetTimeMin
-                    _currentTargetCount.value = user.targetCount
+                    _userNickname.value = user.profile.nickname
+                    _currentTargetMin.value = user.goal.appTimeLimitMin
+                    _currentTargetCount.value = user.goal.shortformLimitCount
                 }
-                } catch (_: Exception) { }
+            } catch (_: Exception) { }
         }
 
         // 오늘 날짜를 "YYYYMMDD" 형태(예: "20260608")로 생성함
@@ -88,6 +91,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 repository.getDailyStatisticsFlow(currentUserId, todayDate).collect { stats ->
                     _dailyStats.value = stats
+                }
+            } catch (_: Exception) { }
+        }
+
+        // 주간 통계 실시간 감시
+        viewModelScope.launch {
+            try {
+                repository.getWeeklyStatisticsFlow(currentUserId).collect { statsList ->
+                    _weeklyStats.value = statsList
                 }
             } catch (_: Exception) { }
         }
@@ -146,15 +158,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
             try {
                 // firebase DB 연동
-                repository.updateTargetSettings(currentUserId, timeLimitMin, countLimit, selectedTags)
+                val updateResult = repository.updateTargetSettings(currentUserId, timeLimitMin, countLimit, selectedTags)
 
-                // DB 저장 성공 시, 화면의 목표 시간과 횟수를 즉시 변경
-                _currentTargetMin.value = timeLimitMin
-                _currentTargetCount.value = countLimit
-
-                _targetSaveEvent.emit("TARGET_SAVE_SUCCESS")
+                // 서버 저장 성공 시 화면 수치 변경
+                if (updateResult.isSuccess) {
+                    _currentTargetMin.value = timeLimitMin
+                    _currentTargetCount.value = countLimit
+                    _targetSaveEvent.emit("TARGET_SAVE_SUCCESS")
+                } else {
+                    // 서버 저장 실패 시 에러 출력
+                    _targetSaveEvent.emit("저장 실패: 서버 연동에 실패했습니다.")
+                }
             } catch (e: Exception) {
-                _targetSaveEvent.emit("저장 실패: ${e.localizedMessage}")
+                _targetSaveEvent.emit("저장 오류: ${e.localizedMessage}")
             }
         }
     }
