@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#BF000000"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="32dp">
+    <!-- 75% 투명도의 Black 배경 블록 -->
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="도파민 한도 초과!"
+        android:textColor="#FFFFFF"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/tv_block_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="오늘 설정한 목표치를 모두 사용했습니다.\n화면을 차단합니다."
+        android:textColor="#CCCCCC"
+        android:textSize="16sp"
+        android:textAlignment="center"
+        android:lineSpacingExtra="6dp"
+        android:layout_marginBottom="40dp" />
+
+    <Button
+        android:id="@+id/btn_go_home"
+        android:layout_width="200dp"
+        android:layout_height="55dp"
+        android:backgroundTint="#4F46E5"
+        android:text="홈으로 돌아가기"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold" />
+</LinearLayout>
