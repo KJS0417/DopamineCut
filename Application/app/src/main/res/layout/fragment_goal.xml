@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/ui_background" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+        <TextView android:id="@+id/tab_title" style="@style/Widget.DopamineCut.TabTitle" android:text="@string/goal_title" />
+        <LinearLayout android:id="@+id/permission_notice" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:visibility="gone">
+            <TextView android:id="@+id/tv_permission_notice" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="12sp" android:textColor="@color/ui_warning" android:accessibilityLiveRegion="polite" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btn_goal_permissions" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:textSize="12sp" android:text="권한 설정" />
+        </LinearLayout>
+        <ProgressBar android:id="@+id/progress_loading" android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="center_horizontal" />
+        <LinearLayout android:id="@+id/managed_goal_list" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="6dp" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btn_create_goal" style="@style/Widget.DopamineCut.PrototypePrimary" android:text="선택한 목표 설정" android:textSize="13sp" android:layout_marginTop="8dp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <com.google.android.material.button.MaterialButton android:id="@+id/btn_goal_candidates" style="@style/Widget.Material3.Button.TextButton" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textSize="12sp" android:text="@string/view_recommended_goals" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btn_my_change" style="@style/Widget.Material3.Button.TextButton" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:textSize="12sp" android:text="@string/view_my_change" />
+        </LinearLayout>
+        <TextView android:id="@+id/tv_managed_goal_message" style="@style/Widget.DopamineCut.BodySpacing" android:textSize="12sp" android:accessibilityLiveRegion="polite" />
+        <LinearLayout style="@style/Widget.DopamineCut.PrototypeCard" android:padding="10dp" android:layout_marginTop="6dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+                <TextView android:id="@+id/tv_goal_sync" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="@color/ui_text_secondary" android:textSize="11sp" android:accessibilityLiveRegion="polite" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btn_sync_goals" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:text="@string/goal_sync_retry" />
+            </LinearLayout>
+            <com.google.android.material.button.MaterialButton android:id="@+id/btn_use_cloud_goals" style="@style/Widget.DopamineCut.PrototypeOutline" android:text="@string/goal_use_cloud" android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btn_use_local_goals" style="@style/Widget.DopamineCut.PrototypeOutline" android:text="@string/goal_use_local" android:visibility="gone" />
+        </LinearLayout>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btn_retry" style="@style/Widget.DopamineCut.PrototypeOutline" android:text="@string/retry" android:visibility="gone" />
+    </LinearLayout>
+</ScrollView>

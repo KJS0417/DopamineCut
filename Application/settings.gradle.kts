@@ -22,4 +22,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Dopaminecut2"
 include(":app")
- 

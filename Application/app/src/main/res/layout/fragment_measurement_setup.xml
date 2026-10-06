@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ui_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/ui_space_large">
+
+        <TextView style="@style/TextAppearance.DopamineCut.Headline" android:text="@string/measurement_setup_title" />
+        <TextView style="@style/Widget.DopamineCut.BodySpacing" android:text="@string/measurement_setup_description" />
+        <TextView style="@style/Widget.DopamineCut.BodySpacing" android:text="@string/intervention_setup_no_goal_notice" android:textColor="@color/ui_text_secondary" />
+
+        <TextView style="@style/TextAppearance.DopamineCut.Section" android:text="@string/accessibility_service" />
+        <TextView android:id="@+id/tv_accessibility_status" style="@style/Widget.DopamineCut.BodySpacing" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_accessibility_settings"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/open_accessibility_settings" />
+
+        <TextView style="@style/TextAppearance.DopamineCut.Section" android:text="@string/usage_access" />
+        <TextView android:id="@+id/tv_usage_status" style="@style/Widget.DopamineCut.BodySpacing" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_usage_settings"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/open_usage_settings" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/ui_space_large"
+            android:text="@string/privacy_capture_notice"
+            android:textColor="@color/ui_text_secondary" />
+
+        <TextView
+            android:id="@+id/tv_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/ui_error" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_start_measurement"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/ui_space_large"
+            android:enabled="false"
+            android:text="@string/start_measurement" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_later"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/setup_later" />
+    </LinearLayout>
+</ScrollView>

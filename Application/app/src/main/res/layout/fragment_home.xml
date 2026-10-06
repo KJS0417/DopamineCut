@@ -1,126 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#FFFFFF">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
-
-        <!-- 오늘의 도파민 현황 (프로그레스 바) -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="오늘의 도파민 현황"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="16dp"/>
-
-            <!-- 총 사용 시간 프로그레스 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="4dp">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="총 사용 시간"
-                    android:textStyle="bold"
-                    android:textColor="#4f46e5"/>
-                <TextView
-                    android:id="@+id/tvTimeStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0분 / 0분"
-                    android:textStyle="bold"/>
-            </LinearLayout>
-
-            <ProgressBar
-                android:id="@+id/pbTime"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="12dp"
-                android:progressTint="#4f46e5"
-                android:progressBackgroundTint="#E5E7EB"
-                android:max="100"
-                android:layout_marginBottom="20dp"/>
-
-            <!-- 숏폼 시청 횟수 프로그레스 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="4dp">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="숏폼 시청 횟수"
-                    android:textStyle="bold"
-                    android:textColor="#ef4444"/>
-                <TextView
-                    android:id="@+id/tvCountStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0회 / 0회"
-                    android:textStyle="bold"/>
-            </LinearLayout>
-            <ProgressBar
-                android:id="@+id/pbCount"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="12dp"
-                android:progressTint="#ef4444"
-                android:progressBackgroundTint="#E5E7EB"
-                android:max="100" />
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/ui_background" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+        <TextView android:id="@+id/tab_title" style="@style/Widget.DopamineCut.TabTitle" android:text="@string/app_name" />
+        <LinearLayout style="@style/Widget.DopamineCut.HomeCompactCard" android:orientation="horizontal" android:gravity="center_vertical" android:padding="8dp">
+            <TextView android:id="@+id/tv_measurement_status" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:padding="8dp" android:textSize="12sp" android:textColor="@color/ui_success" android:accessibilityLiveRegion="polite" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btn_measurement_settings" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="0dp" android:text="@string/check_settings" android:textSize="12sp" />
         </LinearLayout>
-
-        <!-- 파이 차트, 카테고리 비율 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="내 숏폼 취향"
-            android:layout_marginBottom="8dp"
-            android:textStyle="bold" />
-
-        <com.github.mikephil.charting.charts.PieChart
-            android:id="@+id/pieChartCategory"
-            android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:layout_marginBottom="24dp" />
-
-        <!-- 가로 막대 차트 (앱 사용 시간 랭킹) -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="오늘 앱 사용 시간 랭킹"
-            android:layout_marginBottom="8dp"
-            android:textStyle="bold" />
-
-        <com.github.mikephil.charting.charts.HorizontalBarChart
-            android:id="@+id/barChartAppRanking"
-            android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:layout_marginBottom="24dp" />
-
-        <!-- 목표 설정 팝업창 띄우는 버튼 -->
-        <Button
-            android:id="@+id/btn_open_target_setting"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:text="앱별 목표 시간 수정하기"
-            android:textSize="16sp" />
-
+        <ProgressBar android:id="@+id/progress_loading" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center_horizontal" android:layout_marginTop="16dp" />
+        <LinearLayout android:id="@+id/empty_group" style="@style/Widget.DopamineCut.HomeCompactCard" android:visibility="gone">
+            <TextView android:id="@+id/tv_empty_message" style="@style/Widget.DopamineCut.HomeCompactBody" android:accessibilityLiveRegion="polite" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btn_retry" style="@style/Widget.DopamineCut.HomeCompactPrimary" android:text="다시 불러오기" android:visibility="gone" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/summary_card" style="@style/Widget.DopamineCut.HomeCompactCard" android:background="@drawable/ui_preview_background" android:visibility="gone">
+            <TextView style="@style/Widget.DopamineCut.HomeCompactBody" android:text="오늘 숏폼 시청 시간" />
+            <TextView android:id="@+id/tv_shortform_time" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="26sp" android:textColor="@color/ui_text_primary" android:fontFamily="sans-serif-medium" android:layout_marginTop="8dp" android:layout_marginBottom="6dp" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/ui_outline" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="6dp">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:paddingEnd="8dp">
+                    <TextView style="@style/Widget.DopamineCut.HomeCompactBody" android:text="숏폼 시청 영상 수" android:textSize="12sp" />
+                    <TextView android:id="@+id/tv_shortform_count" style="@style/Widget.DopamineCut.HomeCompactBody" android:textSize="16sp" android:textColor="@color/ui_text_primary" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <TextView style="@style/Widget.DopamineCut.HomeCompactBody" android:text="앱 사용 시간" android:textSize="12sp" />
+                    <TextView android:id="@+id/tv_app_time" style="@style/Widget.DopamineCut.HomeCompactBody" android:textSize="16sp" android:textColor="@color/ui_text_primary" />
+                </LinearLayout>
+            </LinearLayout>
+            <TextView style="@style/Widget.DopamineCut.HomeCompactBody" android:text="앱 사용 시간에는 숏폼 시청 시간이 포함돼요." android:textSize="12sp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="8dp">
+            <TextView android:id="@+id/tv_goal_title" style="@style/Widget.DopamineCut.HomeCompactTitle" android:layout_width="0dp" android:layout_weight="1" android:text="오늘 목표 진행" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btn_goal_management" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="0dp" android:text="목표 관리 ›" android:textSize="12sp" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/goal_progress_list" style="@style/Widget.DopamineCut.HomeCompactCard" android:orientation="vertical" />
+        <LinearLayout android:id="@+id/goal_preparation_card" style="@style/Widget.DopamineCut.HomeCompactCard" android:visibility="gone">
+            <TextView android:id="@+id/tv_goal_preparation" style="@style/Widget.DopamineCut.PrototypePill" />
+            <TextView android:id="@+id/tv_goal_summary" style="@style/Widget.DopamineCut.HomeCompactBody" />
+            <ProgressBar android:id="@+id/preparation_progress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="8dp" android:layout_marginTop="6dp" android:max="3" android:progressTint="@color/ui_primary" android:progressBackgroundTint="@color/ui_soft" android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btn_set_goal" style="@style/Widget.DopamineCut.HomeCompactPrimary" android:text="목표 설정하기" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/content_group" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="8dp">
+                <TextView style="@style/Widget.DopamineCut.HomeCompactTitle" android:layout_width="0dp" android:layout_weight="1" android:text="플랫폼별 숏폼" />
+                <com.google.android.material.button.MaterialButtonToggleGroup android:id="@+id/metric_group" android:layout_width="wrap_content" android:layout_height="wrap_content" app:checkedButton="@id/btn_metric_time" app:selectionRequired="true" app:singleSelection="true">
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btn_metric_time" style="@style/Widget.DopamineCut.HomeCompactOutline" android:layout_width="wrap_content" android:minWidth="0dp" android:paddingLeft="12dp" android:paddingRight="12dp" android:textSize="12sp" android:text="@string/metric_time" />
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btn_metric_count" style="@style/Widget.DopamineCut.HomeCompactOutline" android:layout_width="wrap_content" android:minWidth="0dp" android:paddingLeft="12dp" android:paddingRight="12dp" android:textSize="12sp" android:text="@string/metric_count" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+            </LinearLayout>
+            <LinearLayout style="@style/Widget.DopamineCut.HomeCompactCard">
+                <TextView android:id="@+id/tv_platform_usage_title" style="@style/Widget.DopamineCut.HomeCompactBody" android:textSize="12sp" />
+                <LinearLayout android:id="@+id/platform_usage_list" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+                <TextView android:id="@+id/tv_platform_empty" style="@style/Widget.DopamineCut.HomeCompactBody" android:visibility="gone" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp" android:gravity="center_vertical">
+                <TextView style="@style/Widget.DopamineCut.HomeCompactTitle" android:layout_width="0dp" android:layout_weight="1" android:text="오늘 주로 본 콘텐츠" />
+                <TextView android:id="@+id/tv_category_usage_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/ui_text_secondary" />
+            </LinearLayout>
+            <LinearLayout style="@style/Widget.DopamineCut.HomeCompactCard">
+                <LinearLayout android:id="@+id/category_segments" android:layout_width="match_parent" android:layout_height="12dp" android:layout_marginTop="8dp" android:layout_marginBottom="6dp" android:orientation="horizontal" />
+                <LinearLayout android:id="@+id/category_usage_list" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+                <TextView android:id="@+id/tv_category_empty" style="@style/Widget.DopamineCut.HomeCompactBody" android:visibility="gone" />
+                <TextView android:id="@+id/tv_category_notice" style="@style/Widget.DopamineCut.HomeCompactBody" android:text="일부 기록은 분류 중이거나 미확인이에요. 전체 사용량에는 포함돼요." android:textSize="12sp" android:visibility="gone" />
+                <TextView style="@style/Widget.DopamineCut.HomeCompactBody" android:text="시청 시간·영상 수와 콘텐츠 분석 결과는 다를 수 있어요. 라이브·사진 게시물은 시간만 반영해요." android:textSize="12sp" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btn_detailed_stats" style="@style/Widget.DopamineCut.HomeCompactOutline" android:text="자세한 통계 보기" />
+            </LinearLayout>
+        </LinearLayout>
+        <com.google.android.material.button.MaterialButton android:id="@+id/btn_my_change" style="@style/Widget.DopamineCut.HomeCompactPrimary" android:text="내 변화 보기 ›" />
+        <TextView style="@style/Widget.DopamineCut.HomeCompactBody" android:text="지난 기록과 비교하고 다음 목표를 정해요." android:textSize="12sp" />
+        <TextView android:id="@+id/tv_section_message" style="@style/Widget.DopamineCut.HomeCompactBody" android:textColor="@color/ui_error" android:visibility="gone" android:accessibilityLiveRegion="polite" />
     </LinearLayout>
 </ScrollView>

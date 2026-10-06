@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/auth_nav_graph"
+    app:startDestination="@id/nav_signup"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <fragment
+        android:id="@+id/nav_signup"
+        android:name="com.example.dopaminecut2.ui.auth.SignupFragment"
+        android:label="@string/signup_title" />
+
+    <fragment
+        android:id="@+id/nav_login"
+        android:name="com.example.dopaminecut2.ui.auth.LoginFragment"
+        android:label="@string/login_title" />
+</navigation>

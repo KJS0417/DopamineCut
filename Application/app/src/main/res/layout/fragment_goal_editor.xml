@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/ui_background" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+        <TextView style="@style/Widget.DopamineCut.PrototypePill" android:text="목표 세부 설정" />
+        <TextView style="@style/TextAppearance.DopamineCut.Headline" android:text="어떤 사용을\n줄여볼까요?" />
+        <TextView style="@style/Widget.DopamineCut.BodySpacing" android:text="여러 목표를 함께 선택할 수 있어요." />
+        
+        <LinearLayout android:id="@+id/card_time" style="@style/Widget.DopamineCut.PrototypeCard">
+            <CheckBox android:id="@+id/metric_time" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="숏폼 시청 시간" android:textSize="16sp" android:textColor="@color/ui_text_primary" />
+            <TextView style="@style/Widget.DopamineCut.BodySpacing" android:text="숏폼을 보는 시간을 줄여요." />
+            <TextView android:id="@+id/summary_time" style="@style/Widget.DopamineCut.BodySpacing" android:textSize="24sp" android:textColor="@color/ui_text_primary" />
+            <LinearLayout android:id="@+id/averages_time" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+            
+            <com.google.android.material.button.MaterialButton android:id="@+id/detail_time" style="@style/Widget.DopamineCut.PrototypeOutline" android:text="세부 설정 ›" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/card_count" style="@style/Widget.DopamineCut.PrototypeCard">
+            <CheckBox android:id="@+id/metric_count" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="숏폼 시청 영상 수" android:textSize="16sp" android:textColor="@color/ui_text_primary" />
+            <TextView style="@style/Widget.DopamineCut.BodySpacing" android:text="넘겨 보는 영상 수를 줄여요." />
+            <TextView android:id="@+id/summary_count" style="@style/Widget.DopamineCut.BodySpacing" android:textSize="24sp" android:textColor="@color/ui_text_primary" />
+            <LinearLayout android:id="@+id/averages_count" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+            
+            <com.google.android.material.button.MaterialButton android:id="@+id/detail_count" style="@style/Widget.DopamineCut.PrototypeOutline" android:text="세부 설정 ›" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/card_app_time" style="@style/Widget.DopamineCut.PrototypeCard">
+            <CheckBox android:id="@+id/metric_app_time" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="앱 사용 시간" android:textSize="16sp" android:textColor="@color/ui_text_primary" />
+            <TextView style="@style/Widget.DopamineCut.BodySpacing" android:text="선택한 앱의 전체 사용을 줄여요." />
+            <TextView android:id="@+id/summary_app_time" style="@style/Widget.DopamineCut.BodySpacing" android:textSize="24sp" android:textColor="@color/ui_text_primary" />
+            <LinearLayout android:id="@+id/averages_app_time" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+            
+            <com.google.android.material.button.MaterialButton android:id="@+id/detail_app_time" style="@style/Widget.DopamineCut.PrototypeOutline" android:text="세부 설정 ›" />
+        </LinearLayout>
+        <TextView style="@style/Widget.DopamineCut.BodySpacing" android:text="숏폼 시간과 앱 시간의 감소량은 합산하지 않아요." />
+        <LinearLayout android:id="@+id/detail_panel" style="@style/Widget.DopamineCut.PrototypeCard">
+            <com.google.android.material.button.MaterialButtonToggleGroup android:id="@+id/detail_tabs" android:layout_width="match_parent" android:layout_height="wrap_content" app:singleSelection="true" app:selectionRequired="true">
+                <com.google.android.material.button.MaterialButton android:id="@+id/tab_time" style="@style/Widget.DopamineCut.PrototypeOutline" android:layout_width="0dp" android:layout_weight="1" android:minWidth="0dp" android:paddingLeft="4dp" android:paddingRight="4dp" android:insetLeft="0dp" android:insetRight="0dp" android:textSize="12sp" android:text="숏폼 시간" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/tab_count" style="@style/Widget.DopamineCut.PrototypeOutline" android:layout_width="0dp" android:layout_weight="1" android:minWidth="0dp" android:paddingLeft="4dp" android:paddingRight="4dp" android:insetLeft="0dp" android:insetRight="0dp" android:textSize="12sp" android:text="영상 수" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/tab_app_time" style="@style/Widget.DopamineCut.PrototypeOutline" android:layout_width="0dp" android:layout_weight="1" android:minWidth="0dp" android:paddingLeft="4dp" android:paddingRight="4dp" android:insetLeft="0dp" android:insetRight="0dp" android:textSize="12sp" android:text="앱 시간" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+            <TextView android:id="@+id/tv_editing_card" style="@style/TextAppearance.DopamineCut.Title" />
+            <TextView style="@style/TextAppearance.DopamineCut.Section" android:text="@string/target_apps" />
+            <CheckBox android:id="@+id/cb_youtube" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/platform_youtube_shorts" />
+            <CheckBox android:id="@+id/cb_instagram" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/platform_instagram_reels" />
+            <CheckBox android:id="@+id/cb_kakaotalk" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/platform_kakaotalk" />
+            <TextView style="@style/TextAppearance.DopamineCut.Section" android:text="한도 배분" />
+            <TextView style="@style/Widget.DopamineCut.BodySpacing" android:text="선택한 앱 합계로 관리\n선택 앱의 사용량을 합쳐 한도와 비교해요." />
+<com.google.android.material.textfield.TextInputLayout android:id="@+id/target_time" style="@style/Widget.DopamineCut.PrototypeInput" android:hint="@string/goal_target_watch_time">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_time" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLength="4" />
+            </com.google.android.material.textfield.TextInputLayout>
+<com.google.android.material.textfield.TextInputLayout android:id="@+id/target_count" style="@style/Widget.DopamineCut.PrototypeInput" android:visibility="gone" android:hint="@string/goal_target_video_count">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_count" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLength="3" />
+            </com.google.android.material.textfield.TextInputLayout>
+<com.google.android.material.textfield.TextInputLayout android:id="@+id/target_app_time" style="@style/Widget.DopamineCut.PrototypeInput" android:visibility="gone" android:hint="@string/goal_target_app_time">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_app_time" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLength="4" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <LinearLayout android:id="@+id/goal_card_details" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+            <TextView style="@style/TextAppearance.DopamineCut.Section" android:text="@string/goal_intervention_label" />
+            <Spinner android:id="@+id/spinner_intervention" android:layout_width="match_parent" android:layout_height="56dp" android:background="@drawable/ui_card_background" android:padding="8dp" android:entries="@array/goal_intervention_options" />
+            <TextView android:id="@+id/tv_intervention_description" style="@style/Widget.DopamineCut.BodySpacing" android:text="@string/goal_intervention_record_description" android:accessibilityLiveRegion="polite" />
+            <TextView style="@style/Widget.DopamineCut.BodySpacing" android:text="@string/goal_intervention_notification_notice" />
+            <TextView style="@style/Widget.DopamineCut.BodySpacing" android:text="@string/goal_intervention_not_connected" />
+            <com.google.android.material.textfield.TextInputLayout style="@style/Widget.DopamineCut.PrototypeInput" android:hint="연속 숏폼 시청 휴식 안내 (분, 0은 끄기)">
+                <com.google.android.material.textfield.TextInputEditText android:id="@+id/et_continuous_break" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLength="3" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <TextView style="@style/Widget.DopamineCut.BodySpacing" android:text="숏폼 시간 목표에만 적용합니다. 기록만 보기에서는 안내하지 않으며, 목표 진행 알림을 허용해야 합니다." />
+        </LinearLayout>
+        <TextView android:id="@+id/tv_validation" style="@style/Widget.DopamineCut.BodySpacing" android:textColor="@color/ui_error" android:accessibilityLiveRegion="polite" />
+        <TextView android:id="@+id/tv_unavailable" style="@style/Widget.DopamineCut.BodySpacing" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btn_save" style="@style/Widget.DopamineCut.PrototypePrimary" android:enabled="false" android:text="@string/managed_goal_save" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btn_cancel" style="@style/Widget.Material3.Button.TextButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/cancel" />
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,21 @@
+<resources>
+    <style name="Widget.DopamineCut.HomeCompactCard" parent="Widget.DopamineCut.PrototypeCard">
+        <item name="android:padding">10dp</item>
+        <item name="android:layout_marginTop">6dp</item>
+    </style>
+    <style name="Widget.DopamineCut.HomeCompactBody" parent="Widget.DopamineCut.BodySpacing">
+        <item name="android:textSize">12sp</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+    </style>
+    <style name="Widget.DopamineCut.HomeCompactTitle" parent="TextAppearance.DopamineCut.Title">
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="Widget.DopamineCut.HomeCompactPrimary" parent="Widget.DopamineCut.PrototypePrimary">
+        <item name="android:textSize">12sp</item>
+        <item name="android:layout_marginTop">8dp</item>
+    </style>
+    <style name="Widget.DopamineCut.HomeCompactOutline" parent="Widget.DopamineCut.PrototypeOutline">
+        <item name="android:textSize">12sp</item>
+    </style>
+</resources>

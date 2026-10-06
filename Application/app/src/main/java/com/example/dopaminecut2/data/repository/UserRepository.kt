@@ -1,74 +1,81 @@
 package com.example.dopaminecut2.data.repository
 
-import com.example.dopaminecut2.data.local.DataStoreManager
 import com.example.dopaminecut2.data.model.DailyStatistics
-import com.example.dopaminecut2.data.remote.FirebaseDataSource
 import com.example.dopaminecut2.data.model.User
-import com.example.dopaminecut2.data.model.DopamineLog
-import kotlinx.coroutines.flow.Flow
+import com.example.dopaminecut2.data.remote.RemoteUserDataSource
+import com.example.dopaminecut2.statistics.UsageSnapshotStore
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class UserRepository(
-    private val remoteDataSource: FirebaseDataSource,
-    private val localDataSource: DataStoreManager
+    private val remoteDataSource: RemoteUserDataSource,
+    private val localUsageStore: UsageSnapshotStore
 ) : UserRepositoryInterface {
+    private val users = MutableStateFlow<Map<String, User>>(emptyMap())
+    private val monthlyCache = ConcurrentHashMap<String, Map<String, DailyStatistics>>()
+    fun clearStatisticsCache(uid: String) { monthlyCache.keys.removeAll { it.startsWith("$uid|") } }
 
     override suspend fun getUserInfo(userId: String): Result<User> {
-        return try {
-            // Firebase에서 데이터 가져오기 요청
-            val user = remoteDataSource.fetchUser(userId)
-            Result.success(user)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        users.value[userId]?.let { return Result.success(it) }
+        return runCatching { remoteDataSource.fetchUser(userId) }
+            .onSuccess { user -> users.value = users.value + (userId to user) }
     }
 
-    override fun getUserInfoFlow(userId: String): Flow<User> {
-        // 실시간 변경 감지는 Flow로 반환
-        return remoteDataSource.getUserStream(userId)
-    }
-
-    override suspend fun updateTargetSettings(userId: String, timeLimit: Int, countLimit: Int, tags: List<String>): Result<Unit> {
-        return try {
-            // 1. Firebase 서버에 업데이트
-            remoteDataSource.updateUserTargetSettings(userId, timeLimit, countLimit, tags)
-            // 2. 로컬(기기 내부) 데이터도 동기화
-            localDataSource.saveRestrictionsLocally(tags)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun addDopamineLog(log: DopamineLog): Result<Unit> {
-        return try {
-            remoteDataSource.insertDopamineLog(log)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun incrementAppUsage(
+    override suspend fun getDailyStatistics(
         userId: String,
-        date: String,
-        platform: String,
-        runTimeSec: Long,
-        shortformCount: Long
-    ): Result<Unit> {
-        return try {
-            // FieldValue.increment() 로직이 들어있는 remoteDataSource 함수 호출
-            remoteDataSource.incrementAppUsageData(userId, date, platform, runTimeSec, shortformCount)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+        date: String
+    ): Result<DailyStatistics?> = runCatching {
+        localUsageStore.get(userId, date)?.toDailyStatistics() ?: run {
+            val month = date.take(6)
+            val cacheKey = "$userId|$month"
+            val values = monthlyCache[cacheKey] ?: remoteDataSource
+                .fetchMonthlyStatistics(userId, month)
+                .also { fetched -> monthlyCache[cacheKey] = fetched }
+            values[date]
         }
     }
 
-    override fun getDailyStatisticsFlow(userId: String, date: String): Flow<DailyStatistics?> {
-        return remoteDataSource.getDailyStatisticsStream(userId, date)
+    override suspend fun getStatisticsRange(
+        userId: String,
+        startDate: String,
+        endDate: String
+    ): Result<List<DailyStatistics>> = runCatching {
+        val start = LocalDate.parse(startDate, DATE_FORMATTER)
+        val end = LocalDate.parse(endDate, DATE_FORMATTER)
+        require(!end.isBefore(start)) { "통계 시작일이 종료일보다 늦습니다." }
+
+        val remote = linkedMapOf<String, DailyStatistics>()
+        for (month in monthsBetween(start, end)) {
+            val cacheKey = "$userId|$month"
+            val values = monthlyCache[cacheKey] ?: remoteDataSource.fetchMonthlyStatistics(userId, month)
+                .also { values -> monthlyCache[cacheKey] = values }
+            remote.putAll(values)
+        }
+
+        val local = localUsageStore.getRange(userId, startDate, endDate)
+            .associate { snapshot -> snapshot.date to snapshot.toDailyStatistics() }
+
+        (remote + local).values
+            .filter { statistics -> statistics.date in startDate..endDate }
+            .sortedBy(DailyStatistics::date)
     }
 
-    override fun getDopamineLogsFlow(userId: String): Flow<List<DopamineLog>> {
-        return remoteDataSource.getDopamineLogsStream(userId)
+    private fun monthsBetween(start: LocalDate, end: LocalDate): List<String> {
+        val result = mutableListOf<String>()
+        var cursor = YearMonth.from(start)
+        val last = YearMonth.from(end)
+        while (!cursor.isAfter(last)) {
+            result += cursor.format(MONTH_FORMATTER)
+            cursor = cursor.plusMonths(1)
+        }
+        return result
+    }
+
+    private companion object {
+        val DATE_FORMATTER: DateTimeFormatter = DateTimeFormatter.BASIC_ISO_DATE
+        val MONTH_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMM")
     }
 }

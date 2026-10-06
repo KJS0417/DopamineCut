@@ -1,0 +1,30 @@
+{
+  "model_version": "four_class_photo_single_20261006",
+  "renderer": "build_ui_tiles",
+  "examples": [
+    {
+      "example": "cv-ui-tiles-phone",
+      "source_size": [
+        1080,
+        2520
+      ],
+      "input_size": [
+        320,
+        320
+      ],
+      "rgb_sha256": "57a5281dfaa4980bb3c7677608f368937654ad785767e47a413caa3d5dc801c9"
+    },
+    {
+      "example": "cv-ui-tiles-wide",
+      "source_size": [
+        1968,
+        2184
+      ],
+      "input_size": [
+        320,
+        320
+      ],
+      "rgb_sha256": "b7ddb990f7e1ee67f1408da8db7d505b13a8bb2ea0032dc1103237478b36f868"
+    }
+  ]
+}

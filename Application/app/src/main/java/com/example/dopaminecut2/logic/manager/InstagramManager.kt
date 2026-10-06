@@ -1,27 +1,21 @@
 package com.example.dopaminecut2.logic.manager
 
-import android.view.accessibility.AccessibilityNodeInfo
+import com.example.dopaminecut2.domain.SupportedPlatform
 
 class InstagramManager : BaseAppManager() {
 
-    override val packageName = "com.instagram.android"
-    override val platformName = "Instagram"
+    override val platform = SupportedPlatform.INSTAGRAM
 
-    override fun isShortformSection(rootNode: AccessibilityNodeInfo?): Boolean {
-        return findNodeByAnyText(
-            rootNode,
-            listOf("Reels", "릴스")
-        )
+    override fun isShortformSection(snapshot: ScreenSnapshot): Boolean {
+        return snapshot.containsAny(listOf("Reels", "릴스", "reel")) &&
+            snapshot.matchedGroupCount(actionGroups) >= 1
     }
 
-    override fun getVideoIdentifier(rootNode: AccessibilityNodeInfo?): String? {
-        return findLongestText(rootNode)
+    override fun getVideoIdentifier(snapshot: ScreenSnapshot): String? {
+        return snapshot.contentFingerprint(staticControlKeywords)
     }
 
-    override fun isAdContent(rootNode: AccessibilityNodeInfo?): Boolean {
-        return findNodeByAnyText(
-            rootNode,
-            listOf("Sponsored", "광고", "협찬")
-        )
+    override fun isAdContent(snapshot: ScreenSnapshot): Boolean {
+        return snapshot.containsAny(adKeywords + "협찬")
     }
 }

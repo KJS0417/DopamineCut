@@ -1,66 +1,34 @@
 package com.example.dopaminecut2.logic.manager
 
-import android.util.Log
-import android.view.accessibility.AccessibilityNodeInfo
+import com.example.dopaminecut2.domain.SupportedPlatform
+import com.example.dopaminecut2.logic.shortform.ShortformScreenDetection
+import com.example.dopaminecut2.logic.shortform.VideoIdentity
+import com.example.dopaminecut2.logic.shortform.YoutubeAccessibilityIdentityExtractor
+import com.example.dopaminecut2.logic.shortform.YoutubeEntryDetector
 
 class YoutubeManager : BaseAppManager() {
 
-    override val packageName: String = "com.google.android.youtube"
-    override val platformName: String = "YouTube"
+    override val platform = SupportedPlatform.YOUTUBE
+    private val entryDetector = YoutubeEntryDetector()
+    private val identityExtractor = YoutubeAccessibilityIdentityExtractor()
 
-    override fun isShortformSection(rootNode: AccessibilityNodeInfo?): Boolean {
-        if (rootNode == null) return false
-
-        val shortformKeywords = listOf(
-            "Shorts",
-            "쇼츠",
-            "싫어요",
-            "공유",
-            "리믹스",
-            "Dislike",
-            "Share",
-            "Remix"
-        )
-
-        val matchedCount = shortformKeywords.count { keyword ->
-            findNodeByText(rootNode, keyword)
-        }
-
-        return matchedCount >= 2
+    override fun isShortformSection(snapshot: ScreenSnapshot): Boolean {
+        return detectShortformScreen(snapshot).isConfirmedShortform
     }
 
-    override fun isAdContent(rootNode: AccessibilityNodeInfo?): Boolean {
-        if (rootNode == null) return false
+    override fun detectShortformScreen(snapshot: ScreenSnapshot): ShortformScreenDetection =
+        entryDetector.detect(snapshot)
 
-        return findNodeByAnyText(
-            rootNode,
-            listOf("Sponsored", "스폰서", "광고", "Ad")
-        )
+    override fun isAdContent(snapshot: ScreenSnapshot): Boolean {
+        return com.example.dopaminecut2.logic.shortform.YoutubeAdEvidenceDetector.detect(snapshot).explicitAd
     }
 
-    override fun getVideoIdentifier(rootNode: AccessibilityNodeInfo?): String? {
-        if (rootNode == null) return null
-
-        val identifierText = findIdentifierText(rootNode)
-            ?.trim()
-            ?.takeIf { it.isNotBlank() }
-
-        if (identifierText != null) {
-            Log.d(TAG, "[YouTube] 영상 식별자 감지: $identifierText")
-        }
-
-        return identifierText
+    override fun getVideoIdentifier(snapshot: ScreenSnapshot): String? {
+        return getVideoIdentity(snapshot, observedAtElapsedMs = 0L)?.contentKey
     }
 
-    private fun findIdentifierText(rootNode: AccessibilityNodeInfo?): String? {
-        return findLongestText(rootNode)
-    }
-
-    fun getTrackingId(rootNode: AccessibilityNodeInfo?): String? {
-        return getVideoIdentifier(rootNode)
-    }
-
-    companion object {
-        private const val TAG = "YoutubeManager"
-    }
+    override fun getVideoIdentity(
+        snapshot: ScreenSnapshot,
+        observedAtElapsedMs: Long
+    ): VideoIdentity = identityExtractor.extract(snapshot, observedAtElapsedMs)
 }

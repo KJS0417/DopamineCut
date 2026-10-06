@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_nav_graph"
+    app:startDestination="@id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.example.dopaminecut2.ui.home.HomeFragment"
+        android:label="@string/tab_home" />
+    <fragment
+        android:id="@+id/nav_goal"
+        android:name="com.example.dopaminecut2.ui.goal.GoalFragment"
+        android:label="@string/tab_goal" />
+    <fragment
+        android:id="@+id/nav_stats"
+        android:name="com.example.dopaminecut2.ui.stats.StatsFragment"
+        android:label="@string/tab_stats" />
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="com.example.dopaminecut2.ui.settings.SettingsFragment"
+        android:label="@string/tab_settings" />
+
+    <fragment
+        android:id="@+id/nav_intervention_setup"
+        android:name="com.example.dopaminecut2.ui.onboarding.InterventionSetupFragment"
+        android:label="@string/intervention_setup_title" />
+    <fragment
+        android:id="@+id/nav_goal_candidates"
+        android:name="com.example.dopaminecut2.ui.goal.GoalCandidatesFragment"
+        android:label="@string/goal_candidates_title">
+        <argument
+            android:name="source"
+            android:defaultValue="PERSONALIZED"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_goal_editor"
+        android:name="com.example.dopaminecut2.ui.goal.GoalEditorFragment"
+        android:label="@string/goal_editor_title">
+        <argument
+            android:name="mode"
+            android:defaultValue="CREATE"
+            app:argType="string" />
+        <argument
+            android:name="candidate_id"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_measurement_setup"
+        android:name="com.example.dopaminecut2.ui.settings.MeasurementSetupFragment"
+        android:label="@string/measurement_setup_title" />
+    <fragment
+        android:id="@+id/nav_my_change"
+        android:name="com.example.dopaminecut2.ui.change.MyChangeFragment"
+        android:label="@string/my_change_title" />
+</navigation>

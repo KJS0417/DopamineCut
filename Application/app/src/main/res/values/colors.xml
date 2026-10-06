@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="ui_primary">#6550CF</color>
+    <color name="ui_background">#F6F5FA</color>
+    <color name="ui_surface">#FFFFFFFF</color>
+    <color name="ui_text_primary">#242132</color>
+    <color name="ui_text_secondary">#666174</color>
+    <color name="ui_outline">#E5E1ED</color>
+    <color name="ui_soft">#EEE9FF</color>
+    <color name="ui_success">#246951</color>
+    <color name="ui_chart_secondary">#A896DF</color>
+    <color name="ui_chart_third">#B8ABDD</color>
+    <color name="ui_chart_fourth">#C9BEDF</color>
+    <color name="ui_error">#FFB91C1C</color>
+    <color name="ui_warning">#FFB45309</color>
 </resources>

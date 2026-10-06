@@ -1,0 +1,15 @@
+<resources>
+    <color name="ui_primary">#B6A4FF</color>
+    <color name="ui_background">#17151E</color>
+    <color name="ui_surface">#24212E</color>
+    <color name="ui_text_primary">#F1EDF9</color>
+    <color name="ui_text_secondary">#BDB5CD</color>
+    <color name="ui_outline">#443E52</color>
+    <color name="ui_soft">#352B50</color>
+    <color name="ui_success">#91D9B9</color>
+    <color name="ui_chart_secondary">#9A85C7</color>
+    <color name="ui_chart_third">#806DAD</color>
+    <color name="ui_chart_fourth">#66548F</color>
+    <color name="ui_error">#FFB4AB</color>
+    <color name="ui_warning">#F1BE73</color>
+</resources>

@@ -1,0 +1,44 @@
+{
+  "source_png": "captures\\youtube\\review\\ad_ui_variants_20261005_02\\frame_0006.png",
+  "source_xml": "captures\\youtube\\review\\ad_ui_variants_20261005_02\\frame_0006.xml",
+  "sha256": {
+    ".png": "4a0320a82ed19d2f115a8e2f83e72d8431cb13e992cfe60462ac0b0253c0485a",
+    ".xml": "db5baa075b15af333a0960fb4def8e03d83fc30d731610090efd678650f5635c"
+  },
+  "capture_size": [
+    720,
+    1600
+  ],
+  "window": [
+    0,
+    0,
+    720,
+    1600
+  ],
+  "player_id": "reel_watch_player",
+  "player_pixels": [
+    0,
+    51,
+    720,
+    1490
+  ],
+  "creator_pixels": [
+    28,
+    1360,
+    84,
+    1416
+  ],
+  "content_region_pixels": [
+    0,
+    194.9,
+    720,
+    1345.61
+  ],
+  "excluded_button_intersections": [],
+  "limitations": [
+    "Paired XML/PNG were captured sequentially",
+    "No ML Kit OCR execution; geometry visualization only",
+    "UI dump visibility defaults to visible when attribute is absent",
+    "Default display assumed for this phone capture"
+  ]
+}

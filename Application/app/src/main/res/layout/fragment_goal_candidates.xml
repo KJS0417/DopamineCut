@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ui_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/ui_space_large">
+
+        <TextView style="@style/TextAppearance.DopamineCut.Headline" android:text="@string/goal_candidates_title" />
+        <TextView android:id="@+id/tv_candidate_context" style="@style/Widget.DopamineCut.BodySpacing" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_candidate_habit"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/ui_space_large"
+            android:text="@string/candidate_habit" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_candidate_session"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/candidate_session" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_measure_first"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/candidate_measure" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_direct_goal"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/set_goal_directly" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_back"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/back" />
+    </LinearLayout>
+</ScrollView>

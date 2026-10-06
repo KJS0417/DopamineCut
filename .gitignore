@@ -1,0 +1,19 @@
+# Local tools, virtual environments and package caches (not source code).
+/.staging/
+/.pnpm-store/
+**/node_modules/
+**/__pycache__/
+**/*.pyc
+/eng.traineddata
+/kor.traineddata
+
+# Raw captures, training/evaluation outputs and private Firebase credentials.
+/Application/ml/youtube/artifacts/
+**/*-admin.json
+**/*service-account*.json
+**/*.pem
+**/*.jks
+**/*.keystore
+**/.env
+**/.env.*
+!**/.env.example

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.DopamineCut.TabTitle" parent="TextAppearance.DopamineCut.Title">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:layout_marginBottom">8dp</item>
+    </style>
+    <style name="TextAppearance.DopamineCut.Headline" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/ui_text_primary</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">23sp</item>
+    </style>
+    <style name="TextAppearance.DopamineCut.Title" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/ui_text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.DopamineCut.Section" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/ui_space_large</item>
+        <item name="android:layout_marginBottom">@dimen/ui_space_small</item>
+        <item name="android:textColor">@color/ui_text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="Widget.DopamineCut.BodySpacing" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/ui_space_small</item>
+        <item name="android:textColor">@color/ui_text_secondary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineSpacingExtra">4dp</item>
+    </style>
+</resources>
